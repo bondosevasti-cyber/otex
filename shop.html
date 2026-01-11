@@ -489,7 +489,7 @@
                             class="px-4 py-2 text-xs font-bold uppercase tracking-widest border border-[#b8860b] bg-[#b8860b] text-black rounded transition-all hover:shadow-[0_0_15px_rgba(184,134,11,0.4)]">
                             <span data-i18n="cat_all">ყველა</span>
                         </button>
-                        <button onclick="filterCategory('chalice')" id="filter-btn-chalice"
+                        <button onclick="filterCategory('Cup')" id="filter-btn-Cup"
                             class="px-4 py-2 text-xs font-bold uppercase tracking-widest border border-[#b8860b] text-[#b8860b] rounded transition-all hover:bg-[#b8860b] hover:text-black">
                             <span data-i18n="cat_chalice">თასები</span>
                         </button>
@@ -615,7 +615,7 @@
                 nav_home: "HOME", nav_history: "ABOUT US", nav_craft: "PRODUCTS", nav_order: "CONTACT",
                 shop_title: "THE ARMORY", shop_total: "COLLECTION", footer_contact: "CONTACT US",
                 buy_btn: "ORDER NOW", contact_label: "Call to Order:", or_write: "Or Write Us:",
-                fb_btn: "FACEBOOK - MESSAGE US", cat_all: "ALL", cat_chalice: "CHALICES", cat_tankard: "TANKARDS"
+                fb_btn: "FACEBOOK - MESSAGE US", cat_all: "ALL", cat_chalice: "CUPS", cat_tankard: "MUGS"
             }
         };
 
@@ -658,8 +658,8 @@
             const lower = cat.toLowerCase();
             const lang = cLang === 'ka' ? 'ka' : 'en';
 
-            if (lower === 'chalice') return lang === 'ka' ? "თასი" : "CHALICE";
-            if (lower === 'tankard') return lang === 'ka' ? "კათხა" : "TANKARD";
+            if (lower === 'chalice') return lang === 'ka' ? "თასი" : "CUP";
+            if (lower === 'tankard') return lang === 'ka' ? "კათხა" : "MUG";
             return cat.toUpperCase();
         }
 
