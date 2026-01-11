@@ -512,53 +512,122 @@
     </div>
 
     <script>
-        // --- CONFIGURATION ---
+        // --- 1. CRITICAL UI FUNCTIONS (Moved to top) ---
+        // Translations
+        const tr = {
+            ka: { nav_home: "მთავარი", nav_history: "ჩვენს შესახებ", nav_craft: "პროდუქცია", nav_order: "კონტაქტი", shop_title: "შეიარაღება", shop_total: "კოლექცია", footer_contact: "დაგვიკავშირდით", buy_btn: "შეკვეთა", contact_label: "შესაკვეთად დაგვიკავშირდით", or_write: "ან მოგვწერეთ", fb_btn: "FACEBOOK - მოგვწერეთ" },
+            en: { nav_home: "HOME", nav_history: "ABOUT US", nav_craft: "PRODUCTS", nav_order: "CONTACT", shop_title: "THE ARMORY", shop_total: "COLLECTION", footer_contact: "CONTACT US", buy_btn: "ORDER NOW", contact_label: "Call to Order:", or_write: "Or Write Us:", fb_btn: "FACEBOOK - MESSAGE US" }
+        };
+
+        let menuOpen = false;
+        function toggleMenu() {
+            const o = document.getElementById('menu-overlay'), l = document.querySelectorAll('.menu-link');
+            if (!menuOpen) {
+                menuOpen = true;
+                o.style.display = 'flex';
+                try { gsap.to(o, { opacity: 1 }); gsap.to(l, { y: 0, opacity: 1, stagger: 0.1, delay: 0.1 }); } catch (e) { o.style.opacity = 1; }
+            } else {
+                menuOpen = false;
+                try { gsap.to(l, { y: 50, opacity: 0 }); gsap.to(o, { opacity: 0, delay: 0.2, onComplete: () => o.style.display = 'none' }); } catch (e) { o.style.display = 'none'; }
+            }
+        }
+
+        // Initialize Language
+        let cLang = localStorage.getItem('otex_lang') || 'ka';
+
+        function applyLanguageImmediate() {
+            const langText = document.getElementById('lang-text');
+            if (langText) langText.innerText = cLang === 'ka' ? 'ENG' : 'GEO';
+
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (tr[cLang][key]) {
+                    el.innerHTML = tr[cLang][key];
+                }
+            });
+        }
+
+        function toggleLanguageWithTransition() {
+            const wrap = document.getElementById('page-content-wrapper');
+            // Check if gsap is loaded, fallback if not
+            if (typeof gsap !== 'undefined') {
+                gsap.to(wrap, {
+                    opacity: 0, filter: "blur(5px)", duration: 0.3, onComplete: () => {
+                        cLang = cLang === 'ka' ? 'en' : 'ka';
+                        localStorage.setItem('otex_lang', cLang);
+                        applyLanguageImmediate();
+                        gsap.to(wrap, { opacity: 1, filter: "blur(0px)", duration: 0.3 });
+                    }
+                });
+            } else {
+                cLang = cLang === 'ka' ? 'en' : 'ka';
+                localStorage.setItem('otex_lang', cLang);
+                applyLanguageImmediate();
+            }
+        }
+
+        // Apply immediately
+        applyLanguageImmediate();
+
+
+        // --- 2. CONFIGURATION & DATA ---
+        // --- 2. CONFIGURATION & DATA ---
         const SUPABASE_URL = 'https://ozlvczhlnfbwjgnsfwnf.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96bHZjemhsbmZid2pnbnNmd25mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgxMTU5OTgsImV4cCI6MjA4MzY5MTk5OH0.vKQ8q3rRFYHg-8Qj7UTjxPVivvaNHS2O3cSnxqUN02E';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // --- PRODUCT DATA & LOGIC ---
-        let products = []; // Populated from DB
+        let supabaseClient = null;
+        try {
+            // Check if global supabase object exists
+            if (typeof supabase !== 'undefined') {
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            } else {
+                console.error('Supabase library not loaded');
+            }
+        } catch (e) {
+            console.error("Supabase init failed:", e);
+        }
+
+        let products = [];
         const grid = document.getElementById('products-grid');
         const emptyState = document.getElementById('empty-state');
         let currentProducts = [];
 
         async function fetchProducts() {
+            if (!supabaseClient) return;
             try {
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('products')
                     .select('*')
-                    .order('id', { ascending: false }); // Show newest first? User said sort, keeping original logic
+                    .order('id', { ascending: false });
 
                 if (error) throw error;
 
-                // Map DB fields to UI expected fields
                 products = data.map(item => ({
                     ...item,
-                    // Ensure date is present (fallback to today if missing)
                     date: item.created_at ? item.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
-                    // Logic for card size
                     bg: false
                 }));
 
                 currentProducts = [...products];
-                filterAndSort(); // This calls renderGrid
+                filterAndSort();
             } catch (err) {
                 console.error('Error fetching products:', err);
-                grid.innerHTML = `<p class="text-red-500 text-center col-span-full">Failed to load artifacts.</p>`;
+                if (grid) grid.innerHTML = `<p class="text-red-500 text-center col-span-full">Failed to load artifacts. Refresh page.</p>`;
             }
         }
 
-        // Map UI categories to Folder names
-        const folderMap = {
-            'chalice': 'chalice', // Physical folder is 'chalice'
-            'tankard': 'dabali'   // Physical folder is 'dabali'
-        };
+        // --- 3. UI HELPERS & EVENTS ---
+        const folderMap = { 'chalice': 'chalice', 'tankard': 'dabali' };
 
         function renderGrid(items) {
+            if (!grid) return;
             grid.innerHTML = '';
-            if (items.length === 0) { emptyState.style.display = 'block'; return; }
-            else { emptyState.style.display = 'none'; }
+            if (items.length === 0) {
+                if (emptyState) emptyState.style.display = 'block';
+                return;
+            } else {
+                if (emptyState) emptyState.style.display = 'none';
+            }
 
             items.forEach((item, index) => {
                 let spanClass = '';
@@ -567,7 +636,6 @@
                 else if (index % 4 === 0) spanClass = 'col-span-wide';
                 if (index === items.length - 1 && items.length % 2 !== 0) spanClass = 'col-span-wide md:col-span-2';
 
-                // Use folderMap to determine correct path
                 const folder = folderMap[item.category] || item.category;
                 const imgPath = `${folder}/${item.id % 5 || 1}.webp`;
 
@@ -581,8 +649,6 @@
                     <div class="card-content">
                         <span class="text-xs font-bold text-[#b8860b] uppercase tracking-widest mb-1 block">${item.category}</span>
                         <h3 class="text-xl md:text-2xl font-bold text-white brand-font leading-none mb-2 group-hover:text-[#b8860b] transition-colors">${item.title}</h3>
-                        
-                        <!-- CTA Block -->
                         <div class="mt-2 border-t border-gray-800 pt-2">
                              <a href="tel:+995555000000" class="text-[10px] md:text-xs text-gray-400 hover:text-[#b8860b] transition-colors font-bold tracking-wider block">
                                 <span class="text-[#b8860b] mr-1">●</span> შესაკვეთად დარეკეთ: <br>
@@ -593,7 +659,12 @@
                 `;
                 grid.appendChild(card);
             });
-            gsap.to(".bento-card", { y: 0, opacity: 1, duration: 0.5, stagger: 0.05, ease: "power2.out" });
+
+            if (typeof gsap !== 'undefined') {
+                gsap.to(".bento-card", { y: 0, opacity: 1, duration: 0.5, stagger: 0.05, ease: "power2.out" });
+            } else {
+                document.querySelectorAll('.bento-card').forEach(c => { c.style.opacity = 1; c.style.transform = 'none'; });
+            }
         }
 
         const searchInput = document.getElementById('searchInput');
@@ -602,34 +673,32 @@
 
         function filterCategory(category) {
             selectedCategory = category;
-
-            // Update Buttons Visual State
             const buttons = {
                 'all': document.getElementById('filter-btn-all'),
                 'chalice': document.getElementById('filter-btn-chalice'),
                 'tankard': document.getElementById('filter-btn-tankard')
             };
 
-            // Reset all
             Object.values(buttons).forEach(btn => {
-                btn.className = "px-4 py-2 text-xs font-bold uppercase tracking-widest border border-[#b8860b] text-[#b8860b] rounded transition-all hover:bg-[#b8860b] hover:text-black";
+                if (btn) btn.className = "px-4 py-2 text-xs font-bold uppercase tracking-widest border border-[#b8860b] text-[#b8860b] rounded transition-all hover:bg-[#b8860b] hover:text-black";
             });
 
-            // Activate selected
             const activeBtn = buttons[category];
-            activeBtn.className = "px-4 py-2 text-xs font-bold uppercase tracking-widest border border-[#b8860b] bg-[#b8860b] text-black rounded transition-all hover:shadow-[0_0_15px_rgba(184,134,11,0.4)]";
+            if (activeBtn) activeBtn.className = "px-4 py-2 text-xs font-bold uppercase tracking-widest border border-[#b8860b] bg-[#b8860b] text-black rounded transition-all hover:shadow-[0_0_15px_rgba(184,134,11,0.4)]";
 
             filterAndSort();
         }
 
         function filterAndSort() {
-            const query = searchInput.value.toLowerCase();
-            const sortMode = sortSelect.value;
+            const query = searchInput ? searchInput.value.toLowerCase() : '';
+            const sortMode = sortSelect ? sortSelect.value : 'newest';
+
             let filtered = products.filter(p => {
                 const matchSearch = p.title.toLowerCase().includes(query);
                 const matchCategory = selectedCategory === 'all' || p.category === selectedCategory;
                 return matchSearch && matchCategory;
             });
+
             filtered.sort((a, b) => {
                 if (sortMode === 'newest') return new Date(b.date) - new Date(a.date);
                 if (sortMode === 'oldest') return new Date(a.date) - new Date(b.date);
@@ -640,140 +709,118 @@
             });
             renderGrid(filtered);
         }
-        searchInput.addEventListener('input', filterAndSort);
-        sortSelect.addEventListener('change', filterAndSort);
+
+        if (searchInput) searchInput.addEventListener('input', filterAndSort);
+        if (sortSelect) sortSelect.addEventListener('change', filterAndSort);
 
         const modal = document.getElementById('product-modal');
         function openModal(item) {
+            if (!modal) return;
             const folder = folderMap[item.category] || item.category;
             const noBgPath = `${folder}/no_bg/${item.id % 5 || 1}.webp`;
             const backupPath = `${folder}/${item.id % 5 || 1}.webp`;
 
             const imgEl = document.getElementById('modal-img');
-            imgEl.src = item.image_url || noBgPath;
-            imgEl.onerror = () => { imgEl.src = backupPath; };
+            if (imgEl) {
+                imgEl.src = item.image_url || noBgPath;
+                imgEl.onerror = () => { imgEl.src = backupPath; };
+            }
 
-            document.getElementById('modal-title').innerText = item.title;
-            document.getElementById('modal-cat').innerText = item.category;
-            document.getElementById('modal-desc').innerText = item.description;
-            document.getElementById('modal-price').innerText = item.price;
+            const titleEl = document.getElementById('modal-title'); if (titleEl) titleEl.innerText = item.title;
+            const catEl = document.getElementById('modal-cat'); if (catEl) catEl.innerText = item.category;
+            const descEl = document.getElementById('modal-desc'); if (descEl) descEl.innerText = item.description;
+            const priceEl = document.getElementById('modal-price'); if (priceEl) priceEl.innerText = item.price;
 
             modal.style.display = "flex";
-            gsap.fromTo(modal, { opacity: 0 }, { opacity: 1, duration: 0.3 });
-            gsap.fromTo(".modal-content", { opacity: 0, scale: 0.95 }, { opacity: 1, scale: 1, duration: 0.5, ease: "power3.out" });
-            gsap.fromTo(".modal-anim-left", { x: -50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, delay: 0.2, ease: "power2.out" });
-            gsap.fromTo(".modal-anim-right", { x: 50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, delay: 0.3, ease: "power2.out" });
+            if (typeof gsap !== 'undefined') {
+                gsap.fromTo(modal, { opacity: 0 }, { opacity: 1, duration: 0.3 });
+                gsap.fromTo(".modal-content", { opacity: 0, scale: 0.95 }, { opacity: 1, scale: 1, duration: 0.5, ease: "power3.out" });
+                gsap.fromTo(".modal-anim-left", { x: -50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, delay: 0.2, ease: "power2.out" });
+                gsap.fromTo(".modal-anim-right", { x: 50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, delay: 0.3, ease: "power2.out" });
+            } else {
+                modal.style.opacity = 1;
+            }
         }
         function closeModal(e) {
             if (e) e.preventDefault();
-            gsap.to(".modal-content", { scale: 0.95, opacity: 0, duration: 0.3 });
-            gsap.to(modal, { opacity: 0, duration: 0.3, onComplete: () => modal.style.display = 'none' });
-        }
-
-        // --- PARTICLE SYSTEM ---
-        const canvas = document.getElementById('particles-canvas');
-        const ctx = canvas.getContext('2d');
-        let particles = [];
-        let w, h;
-
-        function resizeCanvas() {
-            w = canvas.width = window.innerWidth;
-            h = canvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-
-        class Particle {
-            constructor() {
-                this.x = Math.random() * w;
-                this.y = Math.random() * h;
-                this.size = Math.random() * 2;
-                this.speedY = Math.random() * 0.4 + 0.1;
-                this.speedX = (Math.random() - 0.5) * 0.2;
-                this.opacity = Math.random() * 0.5 + 0.2;
-                this.color = `rgba(184, 134, 11, ${this.opacity})`;
-            }
-            update() {
-                this.y -= this.speedY;
-                this.x += this.speedX;
-                if (this.y < 0) {
-                    this.y = h;
-                    this.x = Math.random() * w;
-                }
-            }
-            draw() {
-                ctx.fillStyle = this.color;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
+            if (!modal) return;
+            if (typeof gsap !== 'undefined') {
+                gsap.to(".modal-content", { scale: 0.95, opacity: 0, duration: 0.3 });
+                gsap.to(modal, { opacity: 0, duration: 0.3, onComplete: () => modal.style.display = 'none' });
+            } else {
+                modal.style.display = 'none';
             }
         }
 
-        function initParticles() {
-            particles = [];
-            const count = window.innerWidth < 768 ? 20 : 60;
-            for (let i = 0; i < count; i++) {
-                particles.push(new Particle());
+        // --- 4. PARTICLES (Non-Critical, Wrapped in try-catch) ---
+        try {
+            const canvas = document.getElementById('particles-canvas');
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                let particles = [];
+                let w, h;
+
+                function resizeCanvas() {
+                    w = canvas.width = window.innerWidth;
+                    h = canvas.height = window.innerHeight;
+                }
+                window.addEventListener('resize', resizeCanvas);
+                resizeCanvas();
+
+                class Particle {
+                    constructor() {
+                        this.x = Math.random() * w;
+                        this.y = Math.random() * h;
+                        this.size = Math.random() * 2;
+                        this.speedY = Math.random() * 0.4 + 0.1;
+                        this.speedX = (Math.random() - 0.5) * 0.2;
+                        this.opacity = Math.random() * 0.5 + 0.2;
+                        this.color = `rgba(184, 134, 11, ${this.opacity})`;
+                    }
+                    update() {
+                        this.y -= this.speedY;
+                        this.x += this.speedX;
+                        if (this.y < 0) {
+                            this.y = h;
+                            this.x = Math.random() * w;
+                        }
+                    }
+                    draw() {
+                        ctx.fillStyle = this.color;
+                        ctx.beginPath();
+                        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+
+                function initParticles() {
+                    particles = [];
+                    const count = window.innerWidth < 768 ? 20 : 60;
+                    for (let i = 0; i < count; i++) {
+                        particles.push(new Particle());
+                    }
+                }
+
+                function animateParticles() {
+                    ctx.clearRect(0, 0, w, h);
+                    particles.forEach(p => {
+                        p.update();
+                        if (p.x > -50 && p.x < w + 50 && p.y > -50 && p.y < h + 50) {
+                            p.draw();
+                        }
+                    });
+                    requestAnimationFrame(animateParticles);
+                }
+
+                initParticles();
+                animateParticles();
             }
+        } catch (err) {
+            console.warn("Particles failed to init:", err);
         }
 
-        function animateParticles() {
-            ctx.clearRect(0, 0, w, h);
-            particles.forEach(p => {
-                p.update();
-                if (p.x > -50 && p.x < w + 50 && p.y > -50 && p.y < h + 50) {
-                    p.draw();
-                }
-            });
-            requestAnimationFrame(animateParticles);
-        }
-
-        initParticles();
-        animateParticles();
-
-        let menuOpen = false;
-        function toggleMenu() {
-            const o = document.getElementById('menu-overlay'), l = document.querySelectorAll('.menu-link');
-            if (!menuOpen) { menuOpen = true; o.style.display = 'flex'; gsap.to(o, { opacity: 1 }); gsap.to(l, { y: 0, opacity: 1, stagger: 0.1, delay: 0.1 }); }
-            else { menuOpen = false; gsap.to(l, { y: 50, opacity: 0 }); gsap.to(o, { opacity: 0, delay: 0.2, onComplete: () => o.style.display = 'none' }); }
-        }
-
-        // Initialize Language from Storage
-        let cLang = localStorage.getItem('otex_lang') || 'ka';
-
-        // Apply immediately on load (No animation)
-        function applyLanguageImmediate() {
-            document.getElementById('lang-text').innerText = cLang === 'ka' ? 'ENG' : 'GEO';
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if (tr[cLang][key]) {
-                    el.innerHTML = tr[cLang][key]; // innerHTML for styling tags
-                }
-            });
-        }
-
-        const tr = {
-            ka: { nav_home: "მთავარი", nav_history: "ჩვენს შესახებ", nav_craft: "პროდუქცია", nav_order: "კონტაქტი", shop_title: "შეიარაღება", shop_total: "კოლექცია", footer_contact: "დაგვიკავშირდით", buy_btn: "შეკვეთა", contact_label: "შესაკვეთად დაგვიკავშირდით", or_write: "ან მოგვწერეთ", fb_btn: "FACEBOOK - მოგვწერეთ" },
-            en: { nav_home: "HOME", nav_history: "ABOUT US", nav_craft: "PRODUCTS", nav_order: "CONTACT", shop_title: "THE ARMORY", shop_total: "COLLECTION", footer_contact: "CONTACT US", buy_btn: "ORDER NOW", contact_label: "Call to Order:", or_write: "Or Write Us:", fb_btn: "FACEBOOK - MESSAGE US" }
-        };
-
-        function toggleLanguageWithTransition() {
-            const wrap = document.getElementById('page-content-wrapper');
-            gsap.to(wrap, {
-                opacity: 0, filter: "blur(5px)", duration: 0.3, onComplete: () => {
-                    // Update & Save
-                    cLang = cLang === 'ka' ? 'en' : 'ka';
-                    localStorage.setItem('otex_lang', cLang);
-
-                    applyLanguageImmediate();
-
-                    gsap.to(wrap, { opacity: 1, filter: "blur(0px)", duration: 0.3 });
-                }
-            });
-        }
-
-        applyLanguageImmediate(); // Run immediate
-        fetchProducts(); // Initial Fetch
+        // Start Fetch LAST
+        fetchProducts(); 
     </script>
 </body>
 
