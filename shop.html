@@ -12,6 +12,8 @@
         href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Noto+Serif+Georgian:wght@400;700;900&family=Noto+Sans+Georgian:wght@300;400;600&display=swap"
         rel="stylesheet">
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <!-- GSAP & Plugins -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
@@ -22,20 +24,8 @@
             color: #e5e5e5;
             font-family: 'Noto Sans Georgian', sans-serif;
             overflow-x: hidden;
-        }
-
-        /* HIDE DEFAULT CURSOR ON DESKTOP */
-        @media (min-width: 1024px) {
-            body {
-                cursor: none;
-            }
-
-            a,
-            button,
-            input,
-            select {
-                cursor: none;
-            }
+            cursor: auto;
+            /* Default Cursor Restored */
         }
 
         h1,
@@ -61,86 +51,6 @@
             background: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%);
             pointer-events: none;
         }
-
-        /* --- CUSTOM TARGET CURSOR --- */
-        #cursor-dot,
-        #cursor-ring {
-            position: fixed;
-            top: 0;
-            left: 0;
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 9999;
-            transform: translate(-50%, -50%);
-            display: none;
-            /* Hidden by default (mobile) */
-        }
-
-        @media (min-width: 1024px) {
-
-            #cursor-dot,
-            #cursor-ring {
-                display: block;
-            }
-        }
-
-        #cursor-dot {
-            width: 8px;
-            height: 8px;
-            background-color: #b8860b;
-            box-shadow: 0 0 10px #b8860b;
-        }
-
-        #cursor-ring {
-            width: 40px;
-            height: 40px;
-            border: 1px solid rgba(184, 134, 11, 0.5);
-            transition: width 0.3s, height 0.3s, border-color 0.3s, background-color 0.3s;
-        }
-
-        /* Hover State Class */
-        body.hovering #cursor-dot {
-            opacity: 0;
-        }
-
-        /* Hide dot on hover? Or keep? Let's hide dot to focus ring. */
-        body.hovering #cursor-ring {
-            width: 60px;
-            height: 60px;
-            background-color: rgba(184, 134, 11, 0.1);
-            border-color: #b8860b;
-            box-shadow: 0 0 20px rgba(184, 134, 11, 0.2);
-            mix-blend-mode: screen;
-        }
-
-        /* Minimal Crosshair Marks */
-        #cursor-ring::after,
-        #cursor-ring::before {
-            content: '';
-            position: absolute;
-            background: #b8860b;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        #cursor-ring::after {
-            width: 4px;
-            height: 1px;
-        }
-
-        #cursor-ring::before {
-            width: 1px;
-            height: 4px;
-        }
-
-        body.hovering #cursor-ring::after,
-        body.hovering #cursor-ring::before {
-            opacity: 1;
-        }
-
 
         /* Navbar & Standard Styles */
         nav {
@@ -175,7 +85,7 @@
             opacity: 0;
             transform: translateY(50px);
             text-decoration: none;
-            cursor: none;
+            cursor: pointer;
         }
 
         .menu-link:hover {
@@ -185,7 +95,7 @@
         }
 
         .lang-btn {
-            cursor: none;
+            cursor: pointer;
             border: 1px solid #b8860b;
             padding: 5px 15px;
             border-radius: 4px;
@@ -203,7 +113,7 @@
         }
 
         .menu-toggle-btn {
-            cursor: none;
+            cursor: pointer;
             color: #b8860b;
             font-weight: bold;
             font-family: 'Cinzel', serif;
@@ -216,7 +126,7 @@
             text-shadow: 0 0 10px #b8860b;
         }
 
-        /* Bento Grid styles from previous step... */
+        /* Bento Grid */
         .bento-grid {
             display: grid;
             grid-template-columns: repeat(1, 1fr);
@@ -243,7 +153,7 @@
             border-radius: 16px;
             overflow: hidden;
             position: relative;
-            cursor: none;
+            cursor: pointer;
             transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             border: none;
             box-shadow: inset 0 0 0 1px rgba(184, 134, 11, 0.3), inset 0 0 20px rgba(0, 0, 0, 0.8), 0 10px 30px rgba(0, 0, 0, 0.5);
@@ -339,7 +249,7 @@
             border-radius: 6px;
             outline: none;
             transition: 0.3s;
-            cursor: none;
+            cursor: text;
         }
 
         .filter-input:focus {
@@ -347,7 +257,7 @@
             color: #fff;
         }
 
-        /* Modal etc... */
+        /* Modal */
         .modal-overlay {
             position: fixed;
             inset: 0;
@@ -360,8 +270,6 @@
             backdrop-filter: blur(20px);
             cursor: auto;
         }
-
-        /* Modal can have default cursor inside for ease? Or keep custom? Let's keep custom. */
 
         .modal-content {
             background: #000;
@@ -415,7 +323,7 @@
             transition: all 0.3s ease;
             margin-top: auto;
             display: block;
-            cursor: none;
+            cursor: pointer;
         }
 
         .modal-btn:hover {
@@ -430,7 +338,7 @@
             right: 1.5rem;
             color: #555;
             font-size: 2rem;
-            cursor: none;
+            cursor: pointer;
             z-index: 50;
             transition: color 0.3s;
             line-height: 1;
@@ -444,15 +352,11 @@
 
 <body>
 
-    <!-- CUSTOM CURSOR DOM -->
-    <div id="cursor-dot"></div>
-    <div id="cursor-ring"></div>
-
     <!-- Standard Menu -->
     <div id="menu-overlay" class="menu-overlay">
         <div class="absolute top-6 right-6">
             <button onclick="toggleMenu()"
-                class="text-[#b8860b] text-4xl hover:text-white transition-colors cursor-none">&times;</button>
+                class="text-[#b8860b] text-4xl hover:text-white transition-colors">&times;</button>
         </div>
         <nav class="flex flex-col gap-8 text-center">
             <a href="index.html" class="menu-link text-5xl md:text-7xl font-black uppercase tracking-widest"
@@ -469,8 +373,7 @@
     <canvas id="particles-canvas"></canvas>
 
     <nav class="fixed top-0 w-full px-6 py-4 flex justify-between items-center z-[100]">
-        <a href="index.html"
-            class="text-metal font-bold text-2xl tracking-[0.2em] brand-font drop-shadow-md cursor-none">OTEX</a>
+        <a href="index.html" class="text-metal font-bold text-2xl tracking-[0.2em] brand-font drop-shadow-md">OTEX</a>
         <div class="flex items-center gap-6">
             <button class="lang-btn" onclick="toggleLanguageWithTransition()">
                 <span id="lang-text">ENG</span>
@@ -542,7 +445,7 @@
                 <h2 class="text-2xl brand-font text-metal mb-4" data-i18n="footer_contact">დაგვიკავშირდით</h2>
                 <div class="flex justify-center gap-6 text-[#b8860b]">
                     <a href="https://www.facebook.com/OtexGeo" target="_blank"
-                        class="hover:text-white transition-colors cursor-none">Facebook</a>
+                        class="hover:text-white transition-colors">Facebook</a>
                 </div>
                 <p class="mt-4 text-gray-500 text-xs">© 2026 OTEX based in Georgia.</p>
             </div>
@@ -579,9 +482,9 @@
                                     <span class="text-[#b8860b]">●</span> <span data-i18n="contact_label">შესაკვეთად
                                         დაგვიკავშირდით:</span>
                                 </p>
-                                <a href="tel:+995571130995"
-                                    class="block text-2xl md:text-3xl text-white font-bold hover:text-[#b8860b] transition-colors brand-font tracking-wide cursor-none">
-                                    +995 571 13 09 95
+                                <a href="tel:+995555000000"
+                                    class="block text-2xl md:text-3xl text-white font-bold hover:text-[#b8860b] transition-colors brand-font tracking-wide">
+                                    +995 555 00 00 00
                                 </a>
                             </div>
 
@@ -609,59 +512,43 @@
     </div>
 
     <script>
-        // --- CURSOR LOGIC ---
-        const dot = document.getElementById('cursor-dot');
-        const ring = document.getElementById('cursor-ring');
-
-        // GSAP quickTo for high performance
-        const moveDotX = gsap.quickTo(dot, "x", { duration: 0.1, ease: "power1.out" });
-        const moveDotY = gsap.quickTo(dot, "y", { duration: 0.1, ease: "power1.out" });
-        const moveRingX = gsap.quickTo(ring, "x", { duration: 0.3, ease: "power2.out" }); // Slower/Springy
-        const moveRingY = gsap.quickTo(ring, "y", { duration: 0.3, ease: "power2.out" });
-
-        window.addEventListener("mousemove", (e) => {
-            const { clientX, clientY } = e;
-            moveDotX(clientX);
-            moveDotY(clientY);
-            moveRingX(clientX);
-            moveRingY(clientY);
-        });
-
-        // Hover Effect Handlers
-        const hoverables = document.querySelectorAll('a, button, input, select, .bento-card');
-        const addHover = () => document.body.classList.add('hovering');
-        const removeHover = () => document.body.classList.remove('hovering');
-
-        // Use event delegation for dynamic items (Bento Cards)
-        document.body.addEventListener('mouseover', (e) => {
-            if (e.target.closest('a') || e.target.closest('button') || e.target.closest('input') || e.target.closest('select') || e.target.closest('.bento-card')) {
-                addHover();
-            }
-        });
-        document.body.addEventListener('mouseout', (e) => {
-            // We need a robust check to avoid flashing
-            if (e.target.closest('a') || e.target.closest('button') || e.target.closest('input') || e.target.closest('select') || e.target.closest('.bento-card')) {
-                removeHover();
-            }
-        });
+        // --- CONFIGURATION ---
+        const SUPABASE_URL = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zaWZ3a3d3aW5mZ2JpbHBwa2t4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgxMTMwOTcsImV4cCI6MjA4MzY4OTA5N30.jKFpo4_PQ3avxd9M8nUgkOpwarY_xFKiAONPs1TvBW8 ';
+        // Correct variable name use:
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zaWZ3a3d3aW5mZ2JpbHBwa2t4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2ODExMzA5NywiZXhwIjoyMDgzNjg5MDk3fQ.khjqrgVZoZ1MOR7iHBDzbVikQfUM2YesTwF1EfqcuTc';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // --- PRODUCT DATA & LOGIC ---
-        const products = [
-            { id: 1, title: 'Spartan I', category: 'chalice', price: 49, date: '2025-01-10', bg: true, description: 'The original masterpiece. High-grade polymer resin encasing a stainless steel core. Built for the gods.' },
-            { id: 2, title: 'Spartan II', category: 'chalice', price: 49, date: '2025-01-12', bg: false, description: 'Enhanced grip texture and a slightly darker hue for the stealth warrior.' },
-            { id: 3, title: 'Spartan III', category: 'chalice', price: 59, date: '2025-01-15', bg: false, description: 'Ceremonial edition with gold-leaf accents.' },
-            { id: 4, title: 'Spartan IV', category: 'chalice', price: 49, date: '2025-01-08', bg: true, description: 'Battle-worn finish used by the vanguard.' },
-            { id: 5, title: 'Spartan V', category: 'chalice', price: 59, date: '2025-01-20', bg: false, description: 'Heavy duty construction. Weighs twice as much as standard.' },
-            { id: 11, title: 'Viking I', category: 'tankard', price: 39, date: '2025-01-05', bg: true, description: 'Short and stout. Perfect for mead or strong coffee.' },
-            { id: 12, title: 'Viking II', category: 'tankard', price: 39, date: '2025-01-18', bg: false, description: 'Runes engraved along the rim for protection.' },
-            { id: 13, title: 'Viking III', category: 'tankard', price: 39, date: '2025-01-22', bg: true, description: 'Polished iron finish. Simple, brutal, effective.' },
-            { id: 14, title: 'Viking IV', category: 'tankard', price: 39, date: '2025-01-01', bg: false, description: 'The essentials. No nonsense.' },
-            { id: 15, title: 'Viking V', category: 'tankard', price: 39, date: '2025-01-03', bg: false, description: 'Another sturdy vessel for the collection.' }
-        ];
-
+        let products = []; // Populated from DB
         const grid = document.getElementById('products-grid');
         const emptyState = document.getElementById('empty-state');
-        let currentProducts = [...products];
+        let currentProducts = [];
+
+        async function fetchProducts() {
+            try {
+                const { data, error } = await supabase
+                    .from('products')
+                    .select('*')
+                    .order('id', { ascending: false }); // Show newest first? User said sort, keeping original logic
+
+                if (error) throw error;
+
+                // Map DB fields to UI expected fields
+                products = data.map(item => ({
+                    ...item,
+                    // Ensure date is present (fallback to today if missing)
+                    date: item.created_at ? item.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+                    // Logic for card size
+                    bg: false
+                }));
+
+                currentProducts = [...products];
+                filterAndSort(); // This calls renderGrid
+            } catch (err) {
+                console.error('Error fetching products:', err);
+                grid.innerHTML = `<p class="text-red-500 text-center col-span-full">Failed to load artifacts.</p>`;
+            }
+        }
 
         // Map UI categories to Folder names
         const folderMap = {
@@ -690,12 +577,19 @@
                 card.onclick = () => openModal(item);
 
                 card.innerHTML = `
-                    <img src="${imgPath}" class="card-bg" alt="${item.title}" onerror="this.src='${folder}/${item.id % 5 || 1}.webp'">
-                    <div class="price-sticker">${item.price} ₾</div>
+                    <img src="${item.image_url || imgPath}" class="card-bg" alt="${item.title}" onerror="this.src='${imgPath}'">
+                    <div class="price-sticker">${item.price}</div>
                     <div class="card-content">
                         <span class="text-xs font-bold text-[#b8860b] uppercase tracking-widest mb-1 block">${item.category}</span>
-                        <h3 class="text-xl md:text-2xl font-bold text-white brand-font leading-none mb-1 group-hover:text-[#b8860b] transition-colors">${item.title}</h3>
-                        <p class="text-[10px] text-gray-400 opacity-80">${item.date}</p>
+                        <h3 class="text-xl md:text-2xl font-bold text-white brand-font leading-none mb-2 group-hover:text-[#b8860b] transition-colors">${item.title}</h3>
+                        
+                        <!-- CTA Block -->
+                        <div class="mt-2 border-t border-gray-800 pt-2">
+                             <a href="tel:+995555000000" class="text-[10px] md:text-xs text-gray-400 hover:text-[#b8860b] transition-colors font-bold tracking-wider block">
+                                <span class="text-[#b8860b] mr-1">●</span> შესაკვეთად დარეკეთ: <br>
+                                <span class="text-white">+995 555 00 00 00</span>
+                             </a>
+                        </div>
                     </div>
                 `;
                 grid.appendChild(card);
@@ -740,8 +634,8 @@
             filtered.sort((a, b) => {
                 if (sortMode === 'newest') return new Date(b.date) - new Date(a.date);
                 if (sortMode === 'oldest') return new Date(a.date) - new Date(b.date);
-                if (sortMode === 'price_asc') return a.price - b.price;
-                if (sortMode === 'price_desc') return b.price - a.price;
+                if (sortMode === 'price_asc') return a.price_val - b.price_val;
+                if (sortMode === 'price_desc') return b.price_val - a.price_val;
                 if (sortMode === 'category') return a.category.localeCompare(b.category);
                 return 0;
             });
@@ -757,13 +651,13 @@
             const backupPath = `${folder}/${item.id % 5 || 1}.webp`;
 
             const imgEl = document.getElementById('modal-img');
-            imgEl.src = noBgPath;
+            imgEl.src = item.image_url || noBgPath;
             imgEl.onerror = () => { imgEl.src = backupPath; };
 
             document.getElementById('modal-title').innerText = item.title;
             document.getElementById('modal-cat').innerText = item.category;
             document.getElementById('modal-desc').innerText = item.description;
-            document.getElementById('modal-price').innerText = item.price + " ₾";
+            document.getElementById('modal-price').innerText = item.price;
 
             modal.style.display = "flex";
             gsap.fromTo(modal, { opacity: 0 }, { opacity: 1, duration: 0.3 });
@@ -880,7 +774,7 @@
         }
 
         applyLanguageImmediate(); // Run immediate
-        renderGrid(products);
+        fetchProducts(); // Initial Fetch
     </script>
 </body>
 
