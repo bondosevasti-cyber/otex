@@ -502,9 +502,56 @@
                     </div>
 
                     <div class="relative group">
-                        <input type="text" id="searchInput" placeholder="Search..."
+                        <input type="text" id="searchInput" placeholder="Search..." data-i18n="ph_search"
                             class="filter-input pl-10 w-full sm:w-64">
                     </div>
+                </div>
+            </div>
+
+            <!-- ADVANCED FILTERS ROW -->
+            <div class="flex flex-wrap items-center justify-end gap-4 mb-8">
+
+                <!-- Layout Switcher -->
+                <div class="flex items-center gap-1 mr-auto">
+                    <!-- Bento (Default) -->
+                    <button onclick="setLayout('bento')" data-layout="bento"
+                        class="layout-btn bg-[#b8860b] text-black border border-[#b8860b] p-2 rounded hover:bg-[#b8860b] hover:text-black transition-colors">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M4 4h4v8H4zm6 0h10v4H10zm0 6h10v6H10zm-6 4h4v6H4zm6 4h10v4H10z" />
+                        </svg>
+                    </button>
+                    <!-- Grid (2x2) -->
+                    <button onclick="setLayout('grid')" data-layout="grid"
+                        class="layout-btn text-[#b8860b] border border-[#b8860b] p-2 rounded hover:bg-[#b8860b] hover:text-black transition-colors">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M4 4h7v7H4zm9 0h7v7h-7zm-9 9h7v7H4zm9 0h7v7h-7z" />
+                        </svg>
+                    </button>
+                    <!-- List (1x1) -->
+                    <button onclick="setLayout('list')" data-layout="list"
+                        class="layout-btn text-[#b8860b] border border-[#b8860b] p-2 rounded hover:bg-[#b8860b] hover:text-black transition-colors">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M4 6h16v4H4zm0 8h16v4H4z" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Sort Dropdown -->
+                <select id="sortSelect" onchange="filterAndSort()"
+                    class="filter-input bg-[#050505] text-[#b8860b] border border-[#b8860b] h-10 cursor-pointer">
+                    <option value="newest" data-i18n="sort_new">Newest</option>
+                    <option value="oldest" data-i18n="sort_old">Oldest</option>
+                    <option value="price_asc" data-i18n="sort_asc">Price: Low to High</option>
+                    <option value="price_desc" data-i18n="sort_desc">Price: High to Low</option>
+                </select>
+
+                <!-- Price Range -->
+                <div class="flex items-center gap-2">
+                    <input type="number" id="minPrice" placeholder="Min ₾" data-i18n="ph_min" oninput="filterAndSort()"
+                        class="filter-input bg-[#050505] text-[#b8860b] border border-[#b8860b] w-24 h-10 pl-3 placeholder-gray-600">
+                    <span class="text-[#b8860b]">-</span>
+                    <input type="number" id="maxPrice" placeholder="Max ₾" data-i18n="ph_max" oninput="filterAndSort()"
+                        class="filter-input bg-[#050505] text-[#b8860b] border border-[#b8860b] w-24 h-10 pl-3 placeholder-gray-600">
                 </div>
             </div>
 
@@ -611,13 +658,19 @@
                 nav_home: "მთავარი", nav_history: "ჩვენს შესახებ", nav_craft: "პროდუქცია", nav_order: "კონტაქტი",
                 shop_title: "შეიარაღება", shop_total: "კოლექცია", footer_contact: "დაგვიკავშირდით",
                 buy_btn: "შეკვეთა", contact_label: "შესაკვეთად დაგვიკავშირდით", or_write: "ან მოგვწერეთ",
-                fb_btn: "FACEBOOK - მოგვწერეთ", cat_all: "ყველა", cat_CUPS: "თასები", cat_MUGS: "კათხები"
+                fb_btn: "FACEBOOK - მოგვწერეთ", cat_all: "ყველა", cat_CUPS: "თასები", cat_MUGS: "კათხები",
+                // Filters & Sort
+                sort_new: "ახალი", sort_old: "ძველი", sort_asc: "ფასი: დაბლიდან მაღლა", sort_desc: "ფასი: მაღლიდან დაბლა",
+                ph_min: "Min ₾", ph_max: "Max ₾", ph_search: "ძებნა..."
             },
             en: {
                 nav_home: "HOME", nav_history: "ABOUT US", nav_craft: "PRODUCTS", nav_order: "CONTACT",
                 shop_title: "THE ARMORY", shop_total: "COLLECTION", footer_contact: "CONTACT US",
                 buy_btn: "ORDER NOW", contact_label: "Call to Order:", or_write: "Or Write Us:",
-                fb_btn: "FACEBOOK - MESSAGE US", cat_all: "ALL", cat_CUPS: "CUPS", cat_MUGS: "MUGS"
+                fb_btn: "FACEBOOK - MESSAGE US", cat_all: "ALL", cat_CUPS: "CUPS", cat_MUGS: "MUGS",
+                // Filters & Sort
+                sort_new: "Newest", sort_old: "Oldest", sort_asc: "Price: Low to High", sort_desc: "Price: High to Low",
+                ph_min: "Min ₾", ph_max: "Max ₾", ph_search: "Search..."
             }
         };
 
@@ -630,6 +683,7 @@
         let selectedCategory = 'all';
         let currentImages = [];
         let currentSlideIndex = 0;
+        let currentLayout = 'bento'; // 'bento', 'grid', 'list'
 
         // DOM Elements
         const grid = document.getElementById('products-grid');
@@ -681,10 +735,15 @@
             const langText = document.getElementById('lang-text');
             if (langText) langText.innerText = cLang === 'ka' ? 'ENG' : 'GEO';
 
+            const t = tr[cLang];
+
+            // 1. Text Content
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
-                if (tr[cLang][key]) {
-                    el.innerHTML = tr[cLang][key];
+                if (t[key]) {
+                    if (el.tagName === 'OPTION') el.text = t[key]; // Handle Option Text
+                    else if (el.tagName === 'INPUT') el.placeholder = t[key]; // Handle Inputs
+                    else el.innerHTML = t[key];
                 }
             });
 
@@ -708,6 +767,21 @@
                 localStorage.setItem('otex_lang', cLang);
                 applyLanguageImmediate();
             }
+        }
+
+        function setLayout(layout) {
+            currentLayout = layout;
+            // Update active button state
+            document.querySelectorAll('.layout-btn').forEach(btn => {
+                if (btn.dataset.layout === layout) {
+                    btn.classList.add('bg-[#b8860b]', 'text-black');
+                    btn.classList.remove('text-[#b8860b]');
+                } else {
+                    btn.classList.remove('bg-[#b8860b]', 'text-black');
+                    btn.classList.add('text-[#b8860b]');
+                }
+            });
+            renderGrid(currentProducts); // Re-render with new layout
         }
 
 
@@ -737,6 +811,20 @@
         function renderGrid(items) {
             if (!grid) return;
             grid.innerHTML = '';
+
+            // Adjust Grid Layout based on currentLayout
+            grid.className = 'bento-grid transition-all duration-300'; // Reset base class
+            if (currentLayout === 'grid') {
+                grid.style.gridTemplateColumns = 'repeat(2, 1fr)';
+                grid.style.gridAutoRows = '300px';
+            } else if (currentLayout === 'list') {
+                grid.style.gridTemplateColumns = '1fr';
+                grid.style.gridAutoRows = 'auto'; // allow natural height or fixed tall
+            } else {
+                // bento (default css rules apply, remove inline styles)
+                grid.style = '';
+            }
+
             if (!items || items.length === 0) {
                 if (emptyState) emptyState.style.display = 'block';
                 return;
@@ -746,9 +834,19 @@
 
             items.forEach((item, index) => {
                 let spanClass = '';
-                if (index % 7 === 0) spanClass = 'col-span-tall';
-                else if (index % 4 === 0) spanClass = 'col-span-wide';
-                if (index === items.length - 1 && items.length % 2 !== 0) spanClass = 'col-span-wide md:col-span-2';
+
+                // Only apply span logic if Bento layout
+                if (currentLayout === 'bento') {
+                    if (index % 7 === 0) spanClass = 'col-span-tall';
+                    else if (index % 4 === 0) spanClass = 'col-span-wide';
+                    if (index === items.length - 1 && items.length % 2 !== 0) spanClass = 'col-span-wide md:col-span-2';
+                }
+
+                // List View Specific Stying
+                if (currentLayout === 'list') {
+                    // In list view, maybe make them taller or different layout
+                    spanClass = 'h-64 sm:h-80';
+                }
 
                 const folder = folderMap[item.category] || item.category;
                 const imgPath = `${folder}/${item.id % 5 || 1}.webp`;
@@ -807,15 +905,35 @@
 
         function filterAndSort() {
             const query = searchInput ? searchInput.value.toLowerCase() : '';
+            const sortVal = document.getElementById('sortSelect').value;
+            const minP = parseFloat(document.getElementById('minPrice').value) || 0;
+            const maxP = parseFloat(document.getElementById('maxPrice').value) || Infinity;
 
             let filtered = products.filter(p => {
                 const matchSearch = p.title.toLowerCase().includes(query);
                 const matchCategory = selectedCategory === 'all' || p.category === selectedCategory;
-                return matchSearch && matchCategory;
+
+                // Price Filter (Using price_val from DB)
+                const pPrice = p.price_val || 0;
+                const matchPrice = pPrice >= minP && pPrice <= maxP;
+
+                return matchSearch && matchCategory && matchPrice;
             });
 
-            // Sort by newest always for now, or add back sort select if needed
-            filtered.sort((a, b) => new Date(b.created_at || new Date()) - new Date(a.created_at || new Date()));
+            // Sorting
+            filtered.sort((a, b) => {
+                const dateA = new Date(a.created_at || 0);
+                const dateB = new Date(b.created_at || 0);
+                const priceA = a.price_val || 0;
+                const priceB = b.price_val || 0;
+
+                switch (sortVal) {
+                    case 'oldest': return dateA - dateB;
+                    case 'price_asc': return priceA - priceB;
+                    case 'price_desc': return priceB - priceA;
+                    case 'newest': default: return dateB - dateA;
+                }
+            });
 
             renderGrid(filtered);
         }
