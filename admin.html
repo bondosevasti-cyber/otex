@@ -125,242 +125,425 @@
         </div>
 
         <div id="uploadSection" class="hidden-section">
-            <div class="flex justify-between items-center mb-10">
-                <h1 class="text-3xl text-[#b8860b] font-bold tracking-widest uppercase" data-key="header">Artifact
-                    Upload</h1>
+            <!-- TAB NAVIGATION -->
+            <div class="flex justify-between items-center mb-8 border-b border-[#333] pb-4">
+                <div class="flex gap-6">
+                    <button onclick="switchTab('add')" id="tab_add"
+                        class="text-[#b8860b] font-bold uppercase tracking-widest border-b-2 border-[#b8860b] pb-4 -mb-4 transition-colors">Add
+                        New</button>
+                    <button onclick="switchTab('manage')" id="tab_manage"
+                        class="text-gray-500 font-bold uppercase tracking-widest hover:text-[#b8860b] pb-4 -mb-4 transition-colors">Manage
+                        Products</button>
+                </div>
                 <button onclick="logout()"
                     class="text-xs text-gray-500 border border-gray-700 px-2 py-1 hover:text-white">Logout</button>
             </div>
 
-            <form id="uploadForm" class="space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div><label data-key="label_title">Title</label><input type="text" id="title" class="input-field"
-                            required></div>
-                    <div>
-                        <label data-key="label_category">Category</label>
-                        <select id="category" class="input-field" required>
-                            <option value="CUPS" id="opt_chalice">თასი</option>
-                            <option value="MUGS" id="opt_tankard">კათხა</option>
-                        </select>
-                    </div>
-                </div>
-                <div>
-                    <label data-key="label_price">Price (Numeric)</label>
-                    <div class="relative">
-                        <!-- Improved Price Input -->
-                        <input type="number" id="priceVal" class="input-field price-input pr-12" placeholder="49"
-                            min="0" required>
-                        <span
-                            class="absolute right-4 top-1/2 -translate-y-1/2 text-[#b8860b] font-bold text-xl pointer-events-none">₾</span>
-                    </div>
-                </div>
-                <div><label data-key="label_desc">Description</label><textarea id="description" rows="4"
-                        class="input-field" required></textarea></div>
-                <div>
-                    <label data-key="label_img">Product Images (Max 10)</label>
-                    <div id="uploadGrid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 mt-2">
-                        <!-- Add Button -->
-                        <div id="addFileBtn" onclick="document.getElementById('imageFile').click()"
-                            class="aspect-square border-2 border-dashed border-[#333] hover:border-[#b8860b] rounded-lg cursor-pointer flex items-center justify-center transition-colors group">
-                            <span class="text-4xl text-[#333] group-hover:text-[#b8860b] transition-colors">+</span>
+            <!-- ADD / EDIT SECTION -->
+            <div id="addSection">
+                <h2 id="formTitle" class="text-xl text-[#b8860b] font-bold mb-6 uppercase tracking-wider hidden">Add
+                    Product</h2><!-- Optional Sub-header -->
+                <form id="uploadForm" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div><label data-key="label_title">Title</label><input type="text" id="title"
+                                class="input-field" required></div>
+                        <div>
+                            <label data-key="label_category">Category</label>
+                            <select id="category" class="input-field" required>
+                                <option value="CUPS" id="opt_chalice">თასი</option>
+                                <option value="MUGS" id="opt_tankard">კათხა</option>
+                            </select>
                         </div>
                     </div>
-                    <!-- Hidden Input -->
-                    <input type="file" id="imageFile" accept="image/*" multiple class="hidden">
-                    <!-- Old preview container removed -->
+                    <div>
+                        <label data-key="label_price">Price (Numeric)</label>
+                        <div class="relative">
+                            <!-- Improved Price Input -->
+                            <input type="number" id="priceVal" class="input-field price-input pr-12" placeholder="49"
+                                min="0" required>
+                            <span
+                                class="absolute right-4 top-1/2 -translate-y-1/2 text-[#b8860b] font-bold text-xl pointer-events-none">₾</span>
+                        </div>
+                    </div>
+                    <div><label data-key="label_desc">Description</label><textarea id="description" rows="4"
+                            class="input-field" required></textarea></div>
+                    <div>
+                        <label data-key="label_img">Product Images (Max 10)</label>
+                        <div id="uploadGrid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 mt-2">
+                            <!-- Add Button -->
+                            <div id="addFileBtn" onclick="document.getElementById('imageFile').click()"
+                                class="aspect-square border-2 border-dashed border-[#333] hover:border-[#b8860b] rounded-lg cursor-pointer flex items-center justify-center transition-colors group">
+                                <span class="text-4xl text-[#333] group-hover:text-[#b8860b] transition-colors">+</span>
+                            </div>
+                        </div>
+                        <!-- Hidden Input -->
+                        <input type="file" id="imageFile" accept="image/*" multiple class="hidden">
+                        <!-- Old preview container removed -->
+                    </div>
+                    <button type="submit" id="submitBtn" class="btn-gold mt-4" data-key="btn_add">Add Product</button>
+                    <!-- Cancel Edit Button (Hidden by default) -->
+                    <button type="button" id="cancelEditBtn" onclick="resetForm()"
+                        class="text-gray-500 text-sm mt-2 hidden hover:text-white w-full">Cancel Edit</button>
+                </form>
+            </div>
+
+            <!-- MANAGE SECTION -->
+            <div id="manageSection" class="hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="text-[#b8860b] border-b border-[#333] text-sm uppercase tracking-wider">
+                                <th class="py-3">Image</th>
+                                <th class="py-3">Title</th>
+                                <th class="py-3">Price</th>
+                                <th class="py-3">Category</th>
+                                <th class="py-3 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productTableBody" class="text-sm text-gray-400">
+                            <!-- Rows injected by JS -->
+                        </tbody>
+                    </table>
                 </div>
-                <button type="submit" id="submitBtn" class="btn-gold mt-4" data-key="btn_add">Add Product</button>
-            </form>
+            </div>
         </div>
-    </div>
 
-    <script>
-        // --- CONFIGURATION ---
-        const SUPABASE_URL = 'https://ozlvczhlnfbwjgnsfwnf.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96bHZjemhsbmZid2pnbnNmd25mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgxMTU5OTgsImV4cCI6MjA4MzY5MTk5OH0.vKQ8q3rRFYHg-8Qj7UTjxPVivvaNHS2O3cSnxqUN02E';
+        <script>
+            // --- CONFIGURATION ---
+            const SUPABASE_URL = 'https://ozlvczhlnfbwjgnsfwnf.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96bHZjemhsbmZid2pnbnNmd25mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgxMTU5OTgsImV4cCI6MjA4MzY5MTk5OH0.vKQ8q3rRFYHg-8Qj7UTjxPVivvaNHS2O3cSnxqUN02E';
 
-        // RENAMED VARIABLE TO ELIMINATE CONFLICT
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            // RENAMED VARIABLE TO ELIMINATE CONFLICT
+            const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // --- AUTH LOGIC ---
-        async function checkSession() {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (session) {
-                document.getElementById('loginSection').classList.add('hidden-section');
-                document.getElementById('uploadSection').classList.remove('hidden-section');
-            } else {
-                document.getElementById('loginSection').classList.remove('hidden-section');
-                document.getElementById('uploadSection').classList.add('hidden-section');
+            // --- AUTH LOGIC ---
+            async function checkSession() {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (session) {
+                    document.getElementById('loginSection').classList.add('hidden-section');
+                    document.getElementById('uploadSection').classList.remove('hidden-section');
+                } else {
+                    document.getElementById('loginSection').classList.remove('hidden-section');
+                    document.getElementById('uploadSection').classList.add('hidden-section');
+                }
             }
-        }
-        checkSession();
-
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-            if (error) {
-                document.getElementById('loginError').innerText = error.message;
-                document.getElementById('loginError').classList.remove('hidden');
-            } else {
-                checkSession();
-            }
-        });
-
-        async function logout() {
-            await supabaseClient.auth.signOut();
             checkSession();
-        }
 
-        // --- LANGUAGE & UI LOGIC ---
-        const translations = {
-            ka: { header: "არტეფაქტის ატვირთვა", label_title: "სათაური", label_category: "კატეგორია", label_price: "ფასი (ციფრი)", label_desc: "აღწერა", label_img: "პროდუქტის სურათები", label_drag: "დააჭირეთ ან ჩააგდეთ ფოტოები", btn_add: "პროდუქტის დამატება", opt_chalice: "თასი", opt_tankard: "კათხა" },
-            en: { header: "Artifact Upload", label_title: "Title", label_category: "Category", label_price: "Price (Numeric)", label_desc: "Description", label_img: "Product Images", label_drag: "Click or Drag images here", btn_add: "Add Product", opt_chalice: "Cup", opt_tankard: "Mug" }
-        };
-        let currentLang = 'ka';
-        function toggleLang() {
-            currentLang = currentLang === 'ka' ? 'en' : 'ka';
-            document.getElementById('langBtn').innerText = currentLang === 'ka' ? 'ENG' : 'GEO';
-            const t = translations[currentLang];
-            document.querySelectorAll('[data-key]').forEach(el => { if (t[el.getAttribute('data-key')]) el.innerText = t[el.getAttribute('data-key')]; });
-
-            // Manual IDs for Options (since select options are tricky with data-key sometimes)
-            document.getElementById('opt_chalice').innerText = t.opt_chalice;
-            document.getElementById('opt_tankard').innerText = t.opt_tankard;
-        }
-        toggleLang();
-
-        // --- PREVIEW LOGIC ---
-        // GLOBAL STATE FOR FILES
-        let selectedFiles = [];
-
-        // --- PREVIEW & FILE LOGIC ---
-        const fileInput = document.getElementById('imageFile');
-        const uploadGrid = document.getElementById('uploadGrid');
-        const addBtn = document.getElementById('addFileBtn');
-
-        fileInput.addEventListener('change', (e) => {
-            const newFiles = Array.from(e.target.files);
-
-            newFiles.forEach(file => {
-                // Prevent duplicates by name and size check
-                const exists = selectedFiles.some(f => f.name === file.name && f.size === file.size);
-                if (!exists && selectedFiles.length < 10) {
-                    selectedFiles.push(file);
+            document.getElementById('loginForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                if (error) {
+                    document.getElementById('loginError').innerText = error.message;
+                    document.getElementById('loginError').classList.remove('hidden');
+                } else {
+                    checkSession();
                 }
             });
 
-            renderPreviews();
-            // Reset input so same file can be selected again if removed
-            fileInput.value = '';
-        });
+            async function logout() {
+                await supabaseClient.auth.signOut();
+                checkSession();
+            }
 
-        function removeFile(index) {
-            selectedFiles.splice(index, 1);
-            renderPreviews();
-        }
+            // --- LANGUAGE & UI LOGIC ---
+            const translations = {
+                ka: { header: "არტეფაქტის ატვირთვა", label_title: "სათაური", label_category: "კატეგორია", label_price: "ფასი (ციფრი)", label_desc: "აღწერა", label_img: "პროდუქტის სურათები", label_drag: "დააჭირეთ ან ჩააგდეთ ფოტოები", btn_add: "პროდუქტის დამატება", opt_chalice: "თასი", opt_tankard: "კათხა" },
+                en: { header: "Artifact Upload", label_title: "Title", label_category: "Category", label_price: "Price (Numeric)", label_desc: "Description", label_img: "Product Images", label_drag: "Click or Drag images here", btn_add: "Add Product", opt_chalice: "Cup", opt_tankard: "Mug" }
+            };
+            let currentLang = 'ka';
+            function toggleLang() {
+                currentLang = currentLang === 'ka' ? 'en' : 'ka';
+                document.getElementById('langBtn').innerText = currentLang === 'ka' ? 'ENG' : 'GEO';
+                const t = translations[currentLang];
+                document.querySelectorAll('[data-key]').forEach(el => { if (t[el.getAttribute('data-key')]) el.innerText = t[el.getAttribute('data-key')]; });
 
-        function renderPreviews() {
-            // Clear Grid but keep Add Button (we'll re-append it)
-            uploadGrid.innerHTML = '';
+                // Manual IDs for Options (since select options are tricky with data-key sometimes)
+                document.getElementById('opt_chalice').innerText = t.opt_chalice;
+                document.getElementById('opt_tankard').innerText = t.opt_tankard;
+            }
+            toggleLang();
 
-            // Render Files
-            selectedFiles.forEach((file, index) => {
-                const reader = new FileReader();
-                const div = document.createElement('div');
-                div.className = 'relative aspect-square rounded-lg overflow-hidden border border-[#333] group';
+            // --- PREVIEW LOGIC ---
+            // GLOBAL STATE FOR FILES
+            let selectedFiles = [];
 
-                div.innerHTML = `
+            // --- PREVIEW & FILE LOGIC ---
+            const fileInput = document.getElementById('imageFile');
+            const uploadGrid = document.getElementById('uploadGrid');
+            const addBtn = document.getElementById('addFileBtn');
+
+            fileInput.addEventListener('change', (e) => {
+                const newFiles = Array.from(e.target.files);
+
+                newFiles.forEach(file => {
+                    // Prevent duplicates by name and size check
+                    const exists = selectedFiles.some(f => f.name === file.name && f.size === file.size);
+                    if (!exists && selectedFiles.length < 10) {
+                        selectedFiles.push(file);
+                    }
+                });
+
+                renderPreviews();
+                // Reset input so same file can be selected again if removed
+                fileInput.value = '';
+            });
+
+            function removeFile(index) {
+                selectedFiles.splice(index, 1);
+                renderPreviews();
+            }
+
+            function renderPreviews() {
+                // Clear Grid but keep Add Button (we'll re-append it)
+                uploadGrid.innerHTML = '';
+
+                // Render Files
+                selectedFiles.forEach((file, index) => {
+                    const reader = new FileReader();
+                    const div = document.createElement('div');
+                    div.className = 'relative aspect-square rounded-lg overflow-hidden border border-[#333] group';
+
+                    div.innerHTML = `
                     <div class="absolute inset-0 bg-gray-900 animate-pulse"></div> <!-- Skeleton -->
                     <button type="button" onclick="removeFile(${index})" class="absolute top-1 right-1 bg-red-600/80 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs z-10 transition-colors">&times;</button>
                 `;
 
-                reader.onload = (e) => {
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    img.className = 'absolute inset-0 w-full h-full object-cover transition-transform group-hover:scale-110';
-                    div.appendChild(img);
-                    // Remove skeleton loader
-                    div.querySelector('.bg-gray-900')?.remove();
-                };
-                reader.readAsDataURL(file);
+                    reader.onload = (e) => {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'absolute inset-0 w-full h-full object-cover transition-transform group-hover:scale-110';
+                        div.appendChild(img);
+                        // Remove skeleton loader
+                        div.querySelector('.bg-gray-900')?.remove();
+                    };
+                    reader.readAsDataURL(file);
 
-                uploadGrid.appendChild(div);
-            });
+                    uploadGrid.appendChild(div);
+                });
 
-            // Append Add Button if limit not reached
-            if (selectedFiles.length < 10) {
-                uploadGrid.appendChild(addBtn);
+                // Append Add Button if limit not reached
+                if (selectedFiles.length < 10) {
+                    uploadGrid.appendChild(addBtn);
+                }
             }
-        }
 
-        // --- UPLOAD LOGIC ---
-        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('submitBtn');
-            const originalText = btn.textContent; btn.textContent = 'Uploading...'; btn.disabled = true;
+            // --- TAB & UI LOGIC ---
+            let editingProductId = null; // If null, we are adding. If set, we are updating.
 
-            try {
-                const title = document.getElementById('title').value;
-                const category = document.getElementById('category').value;
-                const priceVal = document.getElementById('priceVal').value;
-                const description = document.getElementById('description').value;
-                const files = selectedFiles; // Use global state
-                if (files.length === 0) throw new Error("Please select at least one image.");
+            function switchTab(tab) {
+                const addSec = document.getElementById('addSection');
+                const manSec = document.getElementById('manageSection');
+                const tabAdd = document.getElementById('tab_add');
+                const tabMan = document.getElementById('tab_manage');
 
-                const priceDisplay = `${priceVal} ₾`;
-                const priceInt = parseInt(priceVal);
+                if (tab === 'add') {
+                    addSec.classList.remove('hidden');
+                    manSec.classList.add('hidden');
+                    tabAdd.classList.add('text-[#b8860b]', 'border-b-2', 'border-[#b8860b]');
+                    tabAdd.classList.remove('text-gray-500');
+                    tabMan.classList.add('text-gray-500');
+                    tabMan.classList.remove('text-[#b8860b]', 'border-b-2', 'border-[#b8860b]');
+                } else {
+                    addSec.classList.add('hidden');
+                    manSec.classList.remove('hidden');
+                    tabMan.classList.add('text-[#b8860b]', 'border-b-2', 'border-[#b8860b]');
+                    tabMan.classList.remove('text-gray-500');
+                    tabAdd.classList.add('text-gray-500');
+                    tabAdd.classList.remove('text-[#b8860b]', 'border-b-2', 'border-[#b8860b]');
+                    fetchProductsForAdmin();
+                }
+            }
 
-                // Upload All Files
-                const uploadedUrls = [];
+            async function fetchProductsForAdmin() {
+                const tbody = document.getElementById('productTableBody');
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4">Loading...</td></tr>';
 
-                for (let i = 0; i < files.length; i++) {
-                    const file = files[i];
-                    const fileExt = file.name.split('.').pop();
-                    const fileName = `${Date.now()}_${i}.${fileExt}`;
+                const { data, error } = await supabaseClient
+                    .from('products')
+                    .select('*')
+                    .order('id', { ascending: false });
 
-                    // FOLDER MAPPING: Map new categories to old folders
-                    // 'CUPS' -> 'chalice' folder
-                    // 'MUGS' -> 'dabali' folder
-                    const folderName = category === 'CUPS' ? 'chalice' : 'dabali';
-                    const filePath = `${folderName}/${fileName}`;
-
-                    const { error: uploadError } = await supabaseClient.storage.from('product-images').upload(filePath, file);
-                    if (uploadError) throw uploadError;
-
-                    const { data: { publicUrl } } = supabaseClient.storage.from('product-images').getPublicUrl(filePath);
-                    uploadedUrls.push(publicUrl);
+                if (error) {
+                    console.error("Fetch Error:", error);
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-red-500">Error loading products</td></tr>';
+                    return;
                 }
 
-                // Insert into DB
-                // image_url gets the PRIMARY image (first one)
-                // gallery_urls gets the FULL ARRAY
-                const { error: insertError } = await supabaseClient.from('products').insert([{
-                    title,
-                    category,
-                    price: priceDisplay,
-                    price_val: priceInt,
-                    description,
-                    image_url: uploadedUrls[0], // Main Image
-                    gallery_urls: uploadedUrls      // New Column for Gallery
-                }]);
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4">No products found.</td></tr>';
+                    return;
+                }
 
-                if (insertError) throw insertError;
-
-                alert('Product Added Successfully!');
-                document.getElementById('uploadForm').reset();
-                selectedFiles = []; // Reset global state
-                renderPreviews(); // Re-render grid (to show just the add button)
-                // fileNameDisplay removed since it's no longer used
-
-            } catch (err) {
-                console.error(err);
-                alert('Error: ' + err.message);
+                tbody.innerHTML = '';
+                data.forEach(p => {
+                    const tr = document.createElement('tr');
+                    tr.className = "border-b border-[#333] hover:bg-[#111] transition-colors";
+                    tr.innerHTML = `
+                    <td class="py-3"><img src="${p.image_url}" class="w-10 h-10 object-cover rounded border border-[#333]"></td>
+                    <td class="py-3 font-bold text-white">${p.title}</td>
+                    <td class="py-3 text-[#b8860b]">${p.price}</td>
+                    <td class="py-3 text-xs uppercase tracking-wide">${p.category}</td>
+                    <td class="py-3 text-right">
+                        <button onclick="editProduct(${p.id})" class="text-gray-400 hover:text-white mr-3 transition-colors">✏️</button>
+                        <button onclick="deleteProduct(${p.id})" class="text-red-500 hover:text-red-400 transition-colors">🗑️</button>
+                    </td>
+                `;
+                    tbody.appendChild(tr);
+                });
             }
-            finally { btn.textContent = originalText; btn.disabled = false; }
-        });
-    </script>
+
+            // --- EDIT & DELETE ---
+            async function deleteProduct(id) {
+                if (!confirm("Are you sure you want to delete this product? This cannot be undone.")) return;
+
+                const { error } = await supabaseClient
+                    .from('products')
+                    .delete()
+                    .eq('id', id);
+
+                if (error) {
+                    alert("Error deleting product: " + error.message);
+                } else {
+                    fetchProductsForAdmin(); // Refresh table
+                }
+            }
+
+            let currentEditingProduct = null;
+
+            async function editProduct(id) {
+                const { data, error } = await supabaseClient
+                    .from('products')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+
+                if (error) {
+                    alert("Error fetching product details.");
+                    return;
+                }
+
+                currentEditingProduct = data;
+                editingProductId = id;
+
+                // Populate Form
+                document.getElementById('title').value = data.title;
+                document.getElementById('category').value = data.category;
+                document.getElementById('priceVal').value = data.price_val;
+                document.getElementById('description').value = data.description;
+
+                // UI Updates
+                document.getElementById('submitBtn').textContent = "Update Product";
+                document.getElementById('cancelEditBtn').classList.remove('hidden');
+                document.getElementById('formTitle').textContent = `Editing: ${data.title}`;
+                document.getElementById('formTitle').classList.remove('hidden');
+
+                // Reset files (update handles keeping old image if no new files)
+                selectedFiles = [];
+                renderPreviews();
+
+                switchTab('add');
+            }
+
+            function resetForm() {
+                document.getElementById('uploadForm').reset();
+                editingProductId = null;
+                currentEditingProduct = null;
+                document.getElementById('submitBtn').textContent = "Add Product";
+                document.getElementById('cancelEditBtn').classList.add('hidden');
+                document.getElementById('formTitle').classList.add('hidden');
+                selectedFiles = [];
+                renderPreviews();
+            }
+
+            // --- UPLOAD / UPDATE LOGIC ---
+            document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('submitBtn');
+                const originalText = btn.textContent;
+                btn.textContent = editingProductId ? 'Updating...' : 'Uploading...';
+                btn.disabled = true;
+
+                try {
+                    const title = document.getElementById('title').value;
+                    const category = document.getElementById('category').value;
+                    const priceVal = document.getElementById('priceVal').value;
+                    const description = document.getElementById('description').value;
+                    const files = selectedFiles;
+
+                    // VALIDATION
+                    if (!editingProductId && files.length === 0) throw new Error("Please select at least one image.");
+
+                    const priceDisplay = `${priceVal} ₾`;
+                    const priceInt = parseInt(priceVal);
+
+                    // Upload New Files
+                    const uploadedUrls = [];
+                    if (files.length > 0) {
+                        for (let i = 0; i < files.length; i++) {
+                            const file = files[i];
+                            const fileExt = file.name.split('.').pop();
+                            const fileName = `${Date.now()}_${i}.${fileExt}`;
+                            const folderName = category === 'CUPS' ? 'chalice' : 'dabali';
+                            const filePath = `${folderName}/${fileName}`;
+
+                            const { error: uploadError } = await supabaseClient.storage.from('product-images').upload(filePath, file);
+                            if (uploadError) throw uploadError;
+
+                            const { data: { publicUrl } } = supabaseClient.storage.from('product-images').getPublicUrl(filePath);
+                            uploadedUrls.push(publicUrl);
+                        }
+                    }
+
+                    if (editingProductId) {
+                        // --- UPDATE ---
+                        const updatePayload = {
+                            title,
+                            category,
+                            price: priceDisplay,
+                            price_val: priceInt,
+                            description
+                        };
+
+                        if (uploadedUrls.length > 0) {
+                            updatePayload.image_url = uploadedUrls[0];
+                            updatePayload.gallery_urls = uploadedUrls;
+                        }
+
+                        const { error: updateError } = await supabaseClient
+                            .from('products')
+                            .update(updatePayload)
+                            .eq('id', editingProductId);
+
+                        if (updateError) throw updateError;
+                        alert('Product Updated Successfully!');
+                        resetForm();
+
+                    } else {
+                        // --- INSERT ---
+                        const { error: insertError } = await supabaseClient.from('products').insert([{
+                            title,
+                            category,
+                            price: priceDisplay,
+                            price_val: priceInt,
+                            description,
+                            image_url: uploadedUrls[0],
+                            gallery_urls: uploadedUrls
+                        }]);
+
+                        if (insertError) throw insertError;
+                        alert('Product Added Successfully!');
+                        resetForm();
+                    }
+
+                } catch (err) {
+                    console.error(err);
+                    alert('Error: ' + err.message);
+                }
+                finally { btn.textContent = originalText; btn.disabled = false; }
+            });
+        </script>
 </body>
 
 </html>
