@@ -139,8 +139,8 @@
                     <div>
                         <label data-key="label_category">Category</label>
                         <select id="category" class="input-field" required>
-                            <option value="chalice">Chalice</option>
-                            <option value="tankard">Tankard</option>
+                            <option value="chalice" id="opt_chalice">Chalice</option>
+                            <option value="tankard" id="opt_tankard">Tankard</option>
                         </select>
                     </div>
                 </div>
@@ -216,8 +216,8 @@
 
         // --- LANGUAGE & UI LOGIC ---
         const translations = {
-            ka: { header: "არტეფაქტის ატვირთვა", label_title: "სათაური", label_category: "კატეგორია", label_price: "ფასი (ციფრი)", label_desc: "აღწერა", label_img: "პროდუქტის სურათები", label_drag: "დააჭირეთ ან ჩააგდეთ ფოტოები", btn_add: "პროდუქტის დამატება" },
-            en: { header: "Artifact Upload", label_title: "Title", label_category: "Category", label_price: "Price (Numeric)", label_desc: "Description", label_img: "Product Images", label_drag: "Click or Drag images here", btn_add: "Add Product" }
+            ka: { header: "არტეფაქტის ატვირთვა", label_title: "სათაური", label_category: "კატეგორია", label_price: "ფასი (ციფრი)", label_desc: "აღწერა", label_img: "პროდუქტის სურათები", label_drag: "დააჭირეთ ან ჩააგდეთ ფოტოები", btn_add: "პროდუქტის დამატება", opt_chalice: "თასი", opt_tankard: "კათხა" },
+            en: { header: "Artifact Upload", label_title: "Title", label_category: "Category", label_price: "Price (Numeric)", label_desc: "Description", label_img: "Product Images", label_drag: "Click or Drag images here", btn_add: "Add Product", opt_chalice: "Chalice", opt_tankard: "Tankard" }
         };
         let currentLang = 'ka';
         function toggleLang() {
@@ -225,6 +225,10 @@
             document.getElementById('langBtn').innerText = currentLang === 'ka' ? 'ENG' : 'GEO';
             const t = translations[currentLang];
             document.querySelectorAll('[data-key]').forEach(el => { if (t[el.getAttribute('data-key')]) el.innerText = t[el.getAttribute('data-key')]; });
+
+            // Manual IDs for Options (since select options are tricky with data-key sometimes)
+            document.getElementById('opt_chalice').innerText = t.opt_chalice;
+            document.getElementById('opt_tankard').innerText = t.opt_tankard;
         }
         toggleLang();
 

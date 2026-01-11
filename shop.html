@@ -347,6 +347,65 @@
         .close-modal-btn:hover {
             color: #b8860b;
         }
+
+        /* SLIDER CONTROLS */
+        .slider-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            color: #b8860b;
+            border: 1px solid #b8860b;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 60;
+            transition: 0.3s;
+            backdrop-filter: blur(4px);
+        }
+
+        .slider-btn:hover {
+            background: #b8860b;
+            color: #000;
+            box-shadow: 0 0 20px rgba(184, 134, 11, 0.5);
+        }
+
+        .slider-btn.prev {
+            left: 20px;
+        }
+
+        .slider-btn.next {
+            right: 20px;
+        }
+
+        .gallery-dots {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            z-index: 60;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transition: 0.3s;
+        }
+
+        .dot.active {
+            background: #b8860b;
+            transform: scale(1.2);
+        }
     </style>
 </head>
 
@@ -456,10 +515,17 @@
     <div id="product-modal" class="modal-overlay" onclick="closeModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <button class="close-modal-btn" onclick="closeModal(event)">&times;</button>
-            <div class="modal-image-col">
+            <div class="modal-image-col relative group" id="modal-img-container">
+                <!-- Image injected here via JS -->
                 <img id="modal-img" src=""
-                    class="max-h-[85%] w-auto object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)] modal-anim-left">
+                    class="max-h-[85%] w-auto object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)] modal-anim-left transition-opacity duration-300">
+
+                <!-- Slider Controls (Hidden by default) -->
+                <button id="prevBtn" class="slider-btn prev hidden" onclick="prevSlide(event)">&#10094;</button>
+                <button id="nextBtn" class="slider-btn next hidden" onclick="nextSlide(event)">&#10095;</button>
+                <div id="dots-container" class="gallery-dots hidden"></div>
             </div>
+
             <div class="modal-info-col">
                 <div class="modal-anim-right">
                     <span id="modal-cat"
@@ -513,7 +579,6 @@
 
     <script>
         // --- 1. CRITICAL UI FUNCTIONS (Moved to top) ---
-        // Translations
         const tr = {
             ka: { nav_home: "მთავარი", nav_history: "ჩვენს შესახებ", nav_craft: "პროდუქცია", nav_order: "კონტაქტი", shop_title: "შეიარაღება", shop_total: "კოლექცია", footer_contact: "დაგვიკავშირდით", buy_btn: "შეკვეთა", contact_label: "შესაკვეთად დაგვიკავშირდით", or_write: "ან მოგვწერეთ", fb_btn: "FACEBOOK - მოგვწერეთ" },
             en: { nav_home: "HOME", nav_history: "ABOUT US", nav_craft: "PRODUCTS", nav_order: "CONTACT", shop_title: "THE ARMORY", shop_total: "COLLECTION", footer_contact: "CONTACT US", buy_btn: "ORDER NOW", contact_label: "Call to Order:", or_write: "Or Write Us:", fb_btn: "FACEBOOK - MESSAGE US" }
@@ -565,19 +630,15 @@
                 applyLanguageImmediate();
             }
         }
-
-        // Apply immediately
         applyLanguageImmediate();
 
 
-        // --- 2. CONFIGURATION & DATA ---
         // --- 2. CONFIGURATION & DATA ---
         const SUPABASE_URL = 'https://ozlvczhlnfbwjgnsfwnf.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96bHZjemhsbmZid2pnbnNmd25mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgxMTU5OTgsImV4cCI6MjA4MzY5MTk5OH0.vKQ8q3rRFYHg-8Qj7UTjxPVivvaNHS2O3cSnxqUN02E';
 
         let supabaseClient = null;
         try {
-            // Check if global supabase object exists
             if (typeof supabase !== 'undefined') {
                 supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             } else {
@@ -713,23 +774,47 @@
         if (searchInput) searchInput.addEventListener('input', filterAndSort);
         if (sortSelect) sortSelect.addEventListener('change', filterAndSort);
 
+        // --- SLIDER LOGIC ---
         const modal = document.getElementById('product-modal');
+        let currentImages = [];
+        let currentSlideIndex = 0;
+
         function openModal(item) {
             if (!modal) return;
-            const folder = folderMap[item.category] || item.category;
-            const noBgPath = `${folder}/no_bg/${item.id % 5 || 1}.webp`;
-            const backupPath = `${folder}/${item.id % 5 || 1}.webp`;
 
+            // Populate Text Info
+            document.getElementById('modal-title').innerText = item.title;
+            document.getElementById('modal-cat').innerText = item.category;
+            document.getElementById('modal-desc').innerText = item.description;
+            document.getElementById('modal-price').innerText = item.price;
+
+            // Image Logic
             const imgEl = document.getElementById('modal-img');
-            if (imgEl) {
-                imgEl.src = item.image_url || noBgPath;
-                imgEl.onerror = () => { imgEl.src = backupPath; };
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const dotsContainer = document.getElementById('dots-container');
+
+            // Decide if gallery or single image
+            if (item.gallery_urls && item.gallery_urls.length > 0) {
+                currentImages = item.gallery_urls;
+            } else {
+                currentImages = [item.image_url || `${item.category}/${item.id % 5 || 1}.webp`];
             }
 
-            const titleEl = document.getElementById('modal-title'); if (titleEl) titleEl.innerText = item.title;
-            const catEl = document.getElementById('modal-cat'); if (catEl) catEl.innerText = item.category;
-            const descEl = document.getElementById('modal-desc'); if (descEl) descEl.innerText = item.description;
-            const priceEl = document.getElementById('modal-price'); if (priceEl) priceEl.innerText = item.price;
+            currentSlideIndex = 0;
+            updateSlide(false); // Initial Show
+
+            // Show/Hide Controls based on count
+            if (currentImages.length > 1) {
+                prevBtn.classList.remove('hidden');
+                nextBtn.classList.remove('hidden');
+                dotsContainer.classList.remove('hidden');
+                renderDots();
+            } else {
+                prevBtn.classList.add('hidden');
+                nextBtn.classList.add('hidden');
+                dotsContainer.classList.add('hidden');
+            }
 
             modal.style.display = "flex";
             if (typeof gsap !== 'undefined') {
@@ -741,6 +826,45 @@
                 modal.style.opacity = 1;
             }
         }
+
+        function updateSlide(animate = true) {
+            const imgEl = document.getElementById('modal-img');
+            if (animate) imgEl.style.opacity = 0;
+
+            setTimeout(() => {
+                imgEl.src = currentImages[currentSlideIndex];
+                if (animate) imgEl.style.opacity = 1;
+                updateDots();
+            }, animate ? 300 : 0);
+        }
+
+        function nextSlide(e) {
+            e.stopPropagation();
+            currentSlideIndex = (currentSlideIndex + 1) % currentImages.length;
+            updateSlide();
+        }
+
+        function prevSlide(e) {
+            e.stopPropagation();
+            currentSlideIndex = (currentSlideIndex - 1 + currentImages.length) % currentImages.length;
+            updateSlide();
+        }
+
+        function renderDots() {
+            const c = document.getElementById('dots-container');
+            c.innerHTML = '';
+            currentImages.forEach((_, i) => {
+                const dot = document.createElement('div');
+                dot.className = `dot ${i === 0 ? 'active' : ''}`;
+                c.appendChild(dot);
+            });
+        }
+
+        function updateDots() {
+            const dots = document.querySelectorAll('.dot');
+            dots.forEach((d, i) => d.classList.toggle('active', i === currentSlideIndex));
+        }
+
         function closeModal(e) {
             if (e) e.preventDefault();
             if (!modal) return;
@@ -752,74 +876,43 @@
             }
         }
 
-        // --- 4. PARTICLES (Non-Critical, Wrapped in try-catch) ---
+        // --- 4. PARTICLES ---
         try {
             const canvas = document.getElementById('particles-canvas');
             if (canvas) {
                 const ctx = canvas.getContext('2d');
                 let particles = [];
                 let w, h;
-
-                function resizeCanvas() {
-                    w = canvas.width = window.innerWidth;
-                    h = canvas.height = window.innerHeight;
-                }
+                function resizeCanvas() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
                 window.addEventListener('resize', resizeCanvas);
                 resizeCanvas();
-
                 class Particle {
                     constructor() {
-                        this.x = Math.random() * w;
-                        this.y = Math.random() * h;
-                        this.size = Math.random() * 2;
-                        this.speedY = Math.random() * 0.4 + 0.1;
-                        this.speedX = (Math.random() - 0.5) * 0.2;
-                        this.opacity = Math.random() * 0.5 + 0.2;
+                        this.x = Math.random() * w; this.y = Math.random() * h;
+                        this.size = Math.random() * 2; this.speedY = Math.random() * 0.4 + 0.1;
+                        this.speedX = (Math.random() - 0.5) * 0.2; this.opacity = Math.random() * 0.5 + 0.2;
                         this.color = `rgba(184, 134, 11, ${this.opacity})`;
                     }
                     update() {
-                        this.y -= this.speedY;
-                        this.x += this.speedX;
-                        if (this.y < 0) {
-                            this.y = h;
-                            this.x = Math.random() * w;
-                        }
+                        this.y -= this.speedY; this.x += this.speedX;
+                        if (this.y < 0) { this.y = h; this.x = Math.random() * w; }
                     }
                     draw() {
-                        ctx.fillStyle = this.color;
-                        ctx.beginPath();
-                        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                        ctx.fill();
+                        ctx.fillStyle = this.color; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill();
                     }
                 }
-
                 function initParticles() {
-                    particles = [];
-                    const count = window.innerWidth < 768 ? 20 : 60;
-                    for (let i = 0; i < count; i++) {
-                        particles.push(new Particle());
-                    }
+                    particles = []; const count = window.innerWidth < 768 ? 20 : 60;
+                    for (let i = 0; i < count; i++) { particles.push(new Particle()); }
                 }
-
                 function animateParticles() {
-                    ctx.clearRect(0, 0, w, h);
-                    particles.forEach(p => {
-                        p.update();
-                        if (p.x > -50 && p.x < w + 50 && p.y > -50 && p.y < h + 50) {
-                            p.draw();
-                        }
-                    });
+                    ctx.clearRect(0, 0, w, h); particles.forEach(p => { p.update(); if (p.x > -50 && p.x < w + 50 && p.y > -50 && p.y < h + 50) p.draw(); });
                     requestAnimationFrame(animateParticles);
                 }
-
-                initParticles();
-                animateParticles();
+                initParticles(); animateParticles();
             }
-        } catch (err) {
-            console.warn("Particles failed to init:", err);
-        }
+        } catch (err) { console.warn("Particles failed:", err); }
 
-        // Start Fetch LAST
         fetchProducts(); 
     </script>
 </body>
