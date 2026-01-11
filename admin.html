@@ -11,15 +11,10 @@
         href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Noto+Serif+Georgian:wght@400;700;900&display=swap"
         rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <style>
         body {
             background-color: #050505;
             color: #e5e5e5;
-            font-family: 'Cinzel', serif;
-        }
-
-        .brand-font {
             font-family: 'Cinzel', serif;
         }
 
@@ -37,6 +32,21 @@
         .input-field:focus {
             border-color: #b8860b;
             box-shadow: 0 0 15px rgba(184, 134, 11, 0.2);
+        }
+
+        /* Specific Price Input Styling */
+        .price-input {
+            background: #050505;
+            border: 2px solid #b8860b;
+            /* Stronger Gold Border */
+            color: #ffd700;
+            /* Brighter Gold Text */
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .price-input:focus {
+            box-shadow: 0 0 20px rgba(184, 134, 11, 0.4);
         }
 
         .btn-gold {
@@ -58,13 +68,8 @@
             transform: translateY(-2px);
         }
 
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: #888;
-            font-size: 0.875rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
+        .hidden-section {
+            display: none;
         }
 
         .lang-toggle {
@@ -87,6 +92,16 @@
             color: #000;
             box-shadow: 0 0 15px #b8860b;
         }
+
+        /* Preview Grid */
+        .preview-grid::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .preview-grid::-webkit-scrollbar-thumb {
+            background: #b8860b;
+            border-radius: 4px;
+        }
     </style>
 </head>
 
@@ -97,53 +112,67 @@
 
     <div
         class="max-w-2xl w-full bg-black/50 border border-[#b8860b]/30 p-8 md:p-12 rounded-xl backdrop-blur-md shadow-[0_0_50px_rgba(184,134,11,0.1)]">
-        <h1 class="text-4xl text-[#b8860b] text-center mb-10 font-bold tracking-widest uppercase drop-shadow-md brand-font"
-            data-key="header">Artifact Upload</h1>
 
-        <form id="uploadForm" class="space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label data-key="label_title">Title</label>
-                    <input type="text" id="title" class="input-field" placeholder="Ex: Spartan I" required>
+        <div id="loginSection">
+            <h1 class="text-3xl text-[#b8860b] text-center mb-8 font-bold tracking-widest uppercase brand-font">Admin
+                Login</h1>
+            <form id="loginForm" class="space-y-6">
+                <input type="email" id="email" class="input-field" placeholder="Email" required>
+                <input type="password" id="password" class="input-field" placeholder="Password" required>
+                <button type="submit" class="btn-gold">Enter</button>
+            </form>
+            <p id="loginError" class="text-red-500 text-center mt-4 hidden"></p>
+        </div>
+
+        <div id="uploadSection" class="hidden-section">
+            <div class="flex justify-between items-center mb-10">
+                <h1 class="text-3xl text-[#b8860b] font-bold tracking-widest uppercase" data-key="header">Artifact
+                    Upload</h1>
+                <button onclick="logout()"
+                    class="text-xs text-gray-500 border border-gray-700 px-2 py-1 hover:text-white">Logout</button>
+            </div>
+
+            <form id="uploadForm" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div><label data-key="label_title">Title</label><input type="text" id="title" class="input-field"
+                            required></div>
+                    <div>
+                        <label data-key="label_category">Category</label>
+                        <select id="category" class="input-field" required>
+                            <option value="chalice">Chalice</option>
+                            <option value="tankard">Tankard</option>
+                        </select>
+                    </div>
                 </div>
                 <div>
-                    <label data-key="label_category">Category</label>
-                    <select id="category" class="input-field" required>
-                        <option value="chalice">Chalice</option>
-                        <option value="tankard">Tankard</option>
-                    </select>
+                    <label data-key="label_price">Price (Numeric)</label>
+                    <div class="relative">
+                        <!-- Improved Price Input -->
+                        <input type="number" id="priceVal" class="input-field price-input pr-12" placeholder="49"
+                            min="0" required>
+                        <span
+                            class="absolute right-4 top-1/2 -translate-y-1/2 text-[#b8860b] font-bold text-xl pointer-events-none">₾</span>
+                    </div>
                 </div>
-            </div>
-
-            <div>
-                <label data-key="label_price">Price (Numeric)</label>
-                <div class="relative">
-                    <input type="number" id="priceVal" class="input-field" placeholder="Ex: 49" required>
-                    <span class="absolute right-4 top-4 text-gray-500">₾</span>
+                <div><label data-key="label_desc">Description</label><textarea id="description" rows="4"
+                        class="input-field" required></textarea></div>
+                <div>
+                    <label data-key="label_img">Product Images</label>
+                    <div
+                        class="relative border border-dashed border-[#333] hover:border-[#b8860b] transition-colors p-8 text-center rounded bg-[#0a0a0a]">
+                        <!-- Changed to Multiple -->
+                        <input type="file" id="imageFile" accept="image/*" multiple
+                            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" required>
+                        <p class="text-gray-500 pointer-events-none" id="fileName" data-key="label_drag">Click or Drag
+                            images here</p>
+                    </div>
+                    <!-- Image Preview Container -->
+                    <div id="previewContainer"
+                        class="grid grid-cols-4 gap-2 mt-4 max-h-40 overflow-y-auto preview-grid"></div>
                 </div>
-            </div>
-
-            <div>
-                <label data-key="label_desc">Description</label>
-                <textarea id="description" rows="4" class="input-field" placeholder="Artifact details..."
-                    required></textarea>
-            </div>
-
-            <div>
-                <label data-key="label_img">Product Image</label>
-                <div
-                    class="relative border border-dashed border-[#333] hover:border-[#b8860b] transition-colors p-8 text-center rounded bg-[#0a0a0a]">
-                    <input type="file" id="imageFile" accept="image/*"
-                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" required>
-                    <p class="text-gray-500 pointer-events-none" id="fileName" data-key="label_drag">Click or Drag image
-                        here</p>
-                </div>
-            </div>
-
-            <button type="submit" id="submitBtn" class="btn-gold mt-4" data-key="btn_add">
-                Add Product
-            </button>
-        </form>
+                <button type="submit" id="submitBtn" class="btn-gold mt-4" data-key="btn_add">Add Product</button>
+            </form>
+        </div>
     </div>
 
     <script>
@@ -151,130 +180,142 @@
         const SUPABASE_URL = 'https://ozlvczhlnfbwjgnsfwnf.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96bHZjemhsbmZid2pnbnNmd25mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgxMTU5OTgsImV4cCI6MjA4MzY5MTk5OH0.vKQ8q3rRFYHg-8Qj7UTjxPVivvaNHS2O3cSnxqUN02E';
 
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // RENAMED VARIABLE TO ELIMINATE CONFLICT
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // --- LANGUAGE LOGIC ---
-        const translations = {
-            ka: {
-                header: "არტეფაქტის ატვირთვა",
-                label_title: "სათაური",
-                label_category: "კატეგორია",
-                label_price: "ფასი (ციფრი)",
-                label_desc: "აღწერა",
-                label_img: "პროდუქტის სურათი",
-                label_drag: "დააჭირეთ ან ჩააგდეთ ფოტო",
-                btn_add: "პროდუქტის დამატება",
-                placeholder_title: "მაგ: Spartan I",
-                placeholder_desc: "არტეფაქტის დეტალები..."
-            },
-            en: {
-                header: "Artifact Upload",
-                label_title: "Title",
-                label_category: "Category",
-                label_price: "Price (Numeric)",
-                label_desc: "Description",
-                label_img: "Product Image",
-                label_drag: "Click or Drag image here",
-                btn_add: "Add Product",
-                placeholder_title: "Ex: Spartan I",
-                placeholder_desc: "Artifact details..."
+        // --- AUTH LOGIC ---
+        async function checkSession() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) {
+                document.getElementById('loginSection').classList.add('hidden-section');
+                document.getElementById('uploadSection').classList.remove('hidden-section');
+            } else {
+                document.getElementById('loginSection').classList.remove('hidden-section');
+                document.getElementById('uploadSection').classList.add('hidden-section');
             }
-        };
-
-        let currentLang = 'ka'; // Default Georgian
-
-        function toggleLang() {
-            currentLang = currentLang === 'ka' ? 'en' : 'ka';
-            document.getElementById('langBtn').innerText = currentLang === 'ka' ? 'ENG' : 'GEO';
-            updateText();
         }
+        checkSession();
 
-        function updateText() {
-            const t = translations[currentLang];
-            document.querySelectorAll('[data-key]').forEach(el => {
-                const key = el.getAttribute('data-key');
-                if (t[key]) el.innerText = t[key];
-            });
-            document.getElementById('title').placeholder = t.placeholder_title;
-            document.getElementById('description').placeholder = t.placeholder_desc;
-        }
-
-        // Initialize
-        updateText();
-
-
-        // --- UPLOAD LOGIC ---
-        const fileInput = document.getElementById('imageFile');
-        const fileNameDisplay = document.getElementById('fileName');
-
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                fileNameDisplay.textContent = e.target.files[0].name;
-                fileNameDisplay.classList.add('text-[#b8860b]');
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            if (error) {
+                document.getElementById('loginError').innerText = error.message;
+                document.getElementById('loginError').classList.remove('hidden');
+            } else {
+                checkSession();
             }
         });
 
+        async function logout() {
+            await supabaseClient.auth.signOut();
+            checkSession();
+        }
+
+        // --- LANGUAGE & UI LOGIC ---
+        const translations = {
+            ka: { header: "არტეფაქტის ატვირთვა", label_title: "სათაური", label_category: "კატეგორია", label_price: "ფასი (ციფრი)", label_desc: "აღწერა", label_img: "პროდუქტის სურათები", label_drag: "დააჭირეთ ან ჩააგდეთ ფოტოები", btn_add: "პროდუქტის დამატება" },
+            en: { header: "Artifact Upload", label_title: "Title", label_category: "Category", label_price: "Price (Numeric)", label_desc: "Description", label_img: "Product Images", label_drag: "Click or Drag images here", btn_add: "Add Product" }
+        };
+        let currentLang = 'ka';
+        function toggleLang() {
+            currentLang = currentLang === 'ka' ? 'en' : 'ka';
+            document.getElementById('langBtn').innerText = currentLang === 'ka' ? 'ENG' : 'GEO';
+            const t = translations[currentLang];
+            document.querySelectorAll('[data-key]').forEach(el => { if (t[el.getAttribute('data-key')]) el.innerText = t[el.getAttribute('data-key')]; });
+        }
+        toggleLang();
+
+        // --- PREVIEW LOGIC ---
+        const fileInput = document.getElementById('imageFile');
+        const fileNameDisplay = document.getElementById('fileName');
+        const previewContainer = document.getElementById('previewContainer');
+
+        fileInput.addEventListener('change', (e) => {
+            const files = e.target.files;
+            previewContainer.innerHTML = ''; // Clear previous
+
+            if (files.length > 0) {
+                fileNameDisplay.textContent = `${files.length} Files Selected`;
+                fileNameDisplay.classList.add('text-[#b8860b]');
+
+                Array.from(files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        const img = document.createElement('img');
+                        img.src = ev.target.result;
+                        img.className = 'w-full h-20 object-cover rounded border border-[#b8860b] shadow-md';
+                        previewContainer.appendChild(img);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            } else {
+                fileNameDisplay.textContent = translations[currentLang].label_drag;
+                fileNameDisplay.classList.remove('text-[#b8860b]');
+            }
+        });
+
+        // --- UPLOAD LOGIC ---
         document.getElementById('uploadForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
-            const originalText = btn.textContent;
-            btn.textContent = '...';
-            btn.disabled = true;
+            const originalText = btn.textContent; btn.textContent = 'Uploading...'; btn.disabled = true;
 
             try {
                 const title = document.getElementById('title').value;
                 const category = document.getElementById('category').value;
                 const priceVal = document.getElementById('priceVal').value;
                 const description = document.getElementById('description').value;
-                const file = fileInput.files[0];
+                const files = fileInput.files;
 
-                if (!file) throw new Error("Image missing / ფოტო არ არის არჩეული");
+                if (files.length === 0) throw new Error("Please select at least one image.");
 
                 const priceDisplay = `${priceVal} ₾`;
                 const priceInt = parseInt(priceVal);
 
-                // 1. Upload
-                const fileExt = file.name.split('.').pop();
-                const fileName = `${Date.now()}.${fileExt}`;
-                const filePath = `${category}/${fileName}`;
+                // Upload All Files
+                const uploadedUrls = [];
 
-                const { data: uploadData, error: uploadError } = await supabase.storage
-                    .from('product-images')
-                    .upload(filePath, file);
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const fileExt = file.name.split('.').pop();
+                    const fileName = `${Date.now()}_${i}.${fileExt}`;
+                    const filePath = `${category}/${fileName}`;
 
-                if (uploadError) throw uploadError;
+                    const { error: uploadError } = await supabaseClient.storage.from('product-images').upload(filePath, file);
+                    if (uploadError) throw uploadError;
 
-                // 2. URL
-                const { data: { publicUrl } } = supabase.storage
-                    .from('product-images')
-                    .getPublicUrl(filePath);
+                    const { data: { publicUrl } } = supabaseClient.storage.from('product-images').getPublicUrl(filePath);
+                    uploadedUrls.push(publicUrl);
+                }
 
-                // 3. DB Insert
-                const { error: insertError } = await supabase
-                    .from('products')
-                    .insert([{
-                        title,
-                        category,
-                        price: priceDisplay,
-                        price_val: priceInt,
-                        description,
-                        image_url: publicUrl
-                    }]);
+                // Insert into DB
+                // image_url gets the PRIMARY image (first one)
+                // gallery_urls gets the FULL ARRAY
+                const { error: insertError } = await supabaseClient.from('products').insert([{
+                    title,
+                    category,
+                    price: priceDisplay,
+                    price_val: priceInt,
+                    description,
+                    image_url: uploadedUrls[0], // Main Image
+                    gallery_urls: uploadedUrls      // New Column for Gallery
+                }]);
 
                 if (insertError) throw insertError;
 
-                alert('Success! / წარმატებულია!');
+                alert('Product Added Successfully!');
                 document.getElementById('uploadForm').reset();
+                previewContainer.innerHTML = '';
                 fileNameDisplay.innerText = translations[currentLang].label_drag;
-                fileNameDisplay.classList.remove('text-[#b8860b]');
 
             } catch (err) {
                 console.error(err);
                 alert('Error: ' + err.message);
-            } finally {
-                btn.textContent = originalText;
-                btn.disabled = false;
             }
+            finally { btn.textContent = originalText; btn.disabled = false; }
         });
     </script>
 </body>
