@@ -619,6 +619,39 @@
             }
         };
 
+        // GLOBAL VARS DECLARED FIRST
+        let supabaseClient = null;
+        let products = [];
+        let currentProducts = [];
+        let menuOpen = false;
+        let cLang = localStorage.getItem('otex_lang') || 'ka';
+        let selectedCategory = 'all';
+        let currentImages = [];
+        let currentSlideIndex = 0;
+
+        // DOM Elements
+        const grid = document.getElementById('products-grid');
+        const emptyState = document.getElementById('empty-state');
+        const searchInput = document.getElementById('searchInput');
+        const modal = document.getElementById('product-modal');
+        const lightbox = document.getElementById('lightbox');
+        const lbImg = document.getElementById('lightbox-img');
+
+        // --- 2. SUPABASE INIT ---
+        const SUPABASE_URL = 'https://ozlvczhlnfbwjgnsfwnf.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96bHZjemhsbmZid2pnbnNmd25mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgxMTU5OTgsImV4cCI6MjA4MzY5MTk5OH0.vKQ8q3rRFYHg-8Qj7UTjxPVivvaNHS2O3cSnxqUN02E';
+
+        try {
+            if (typeof supabase !== 'undefined') {
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            } else {
+                console.error('Supabase library not loaded');
+            }
+        } catch (e) { console.error("Supabase init failed:", e); }
+
+
+        // --- 3. HELPER FUNCTIONS ---
+
         // Category DB to Display Mapping
         function getCategoryLabel(cat) {
             if (!cat) return "";
@@ -630,7 +663,6 @@
             return cat.toUpperCase();
         }
 
-        let menuOpen = false;
         function toggleMenu() {
             const o = document.getElementById('menu-overlay'), l = document.querySelectorAll('.menu-link');
             if (!menuOpen) {
@@ -642,8 +674,6 @@
                 try { gsap.to(l, { y: 50, opacity: 0 }); gsap.to(o, { opacity: 0, delay: 0.2, onComplete: () => o.style.display = 'none' }); } catch (e) { o.style.display = 'none'; }
             }
         }
-
-        let cLang = localStorage.getItem('otex_lang') || 'ka';
 
         function applyLanguageImmediate() {
             const langText = document.getElementById('lang-text');
@@ -657,7 +687,7 @@
             });
 
             // Re-render grid to update product cards if loaded
-            if (currentProducts.length > 0) renderGrid(currentProducts);
+            if (currentProducts && currentProducts.length > 0) renderGrid(currentProducts);
         }
 
         function toggleLanguageWithTransition() {
@@ -677,25 +707,9 @@
                 applyLanguageImmediate();
             }
         }
-        applyLanguageImmediate();
 
-        // --- 2. SUPABASE ---
-        const SUPABASE_URL = 'https://ozlvczhlnfbwjgnsfwnf.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96bHZjemhsbmZid2pnbnNmd25mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgxMTU5OTgsImV4cCI6MjA4MzY5MTk5OH0.vKQ8q3rRFYHg-8Qj7UTjxPVivvaNHS2O3cSnxqUN02E';
 
-        let supabaseClient = null;
-        try {
-            if (typeof supabase !== 'undefined') {
-                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            } else {
-                console.error('Supabase library not loaded');
-            }
-        } catch (e) { console.error("Supabase init failed:", e); }
-
-        let products = [];
-        const grid = document.getElementById('products-grid');
-        const emptyState = document.getElementById('empty-state');
-        let currentProducts = [];
+        // --- 4. DATA LOGIC ---
 
         async function fetchProducts() {
             if (!supabaseClient) return;
@@ -715,13 +729,13 @@
             }
         }
 
-        // --- 3. UI HELPERS ---
+        // --- 5. RENDER LOGIC ---
         const folderMap = { 'chalice': 'chalice', 'tankard': 'dabali' };
 
         function renderGrid(items) {
             if (!grid) return;
             grid.innerHTML = '';
-            if (items.length === 0) {
+            if (!items || items.length === 0) {
                 if (emptyState) emptyState.style.display = 'block';
                 return;
             } else {
@@ -766,8 +780,6 @@
             }
         }
 
-        const searchInput = document.getElementById('searchInput');
-        let selectedCategory = 'all';
 
         function filterCategory(category) {
             selectedCategory = category;
@@ -804,11 +816,7 @@
 
         if (searchInput) searchInput.addEventListener('input', filterAndSort);
 
-        // --- SLIDER & MODAL ---
-        const modal = document.getElementById('product-modal');
-        let currentImages = [];
-        let currentSlideIndex = 0;
-
+        // --- 6. MODAL & SLIDER ---
         function openModal(item) {
             if (!modal) return;
 
@@ -895,10 +903,7 @@
             }
         }
 
-        // --- LIGHTBOX ---
-        const lightbox = document.getElementById('lightbox');
-        const lbImg = document.getElementById('lightbox-img');
-
+        // --- 7. LIGHTBOX LOGIC ---
         function openLightbox() {
             if (!lightbox || !lbImg) return;
             lbImg.src = currentImages[currentSlideIndex];
@@ -909,7 +914,7 @@
             if (lightbox) lightbox.style.display = 'none';
         }
 
-        // --- 4. PARTICLES ---
+        // --- 8. PARTICLES ---
         try {
             const canvas = document.getElementById('particles-canvas');
             if (canvas) {
@@ -946,8 +951,8 @@
             }
         } catch (err) { console.warn("Particles failed:", err); }
 
+        // --- 9. STARTUP ---
+        // Functions are now defined, so we can safely call them
+        applyLanguageImmediate();
         fetchProducts(); 
     </script>
-</body>
-
-</html>
