@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="ka">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OTEX | Spartan Mug</title>
+    <link rel="icon" type="image/png" href="index_images/tab_images.png">
+
+    <!-- Preload Critical Assets -->
+    <link rel="preload" as="image" href="index_images/1_clean.webp">
+    <link rel="preload" as="image" href="index_images/4.webp">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Noto+Serif+Georgian:wght@400;700;900&family=Noto+Sans+Georgian:wght@300;400;600&family=Exo+2:wght@300;600&display=swap"
+        rel="stylesheet">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #050505;
+            color: #e5e5e5;
+            font-family: 'Noto Sans Georgian', 'Exo 2', sans-serif;
+            overflow-x: hidden;
+        }
+
+        h1,
+        h2,
+        .brand-font {
+            font-family: 'Noto Serif Georgian', 'Cinzel', serif;
+        }
+
+        /* Particle Background */
+        #particles-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%);
+            pointer-events: none;
+        }
+
+        /* Fixed Mug Container */
+        #fixed-mug-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+            perspective: 1000px;
+        }
+
+        #hero-mug {
+            width: auto;
+            height: auto;
+            max-width: 90vw;
+            max-height: 50vh;
+            /* Mobile Default */
+            object-fit: contain;
+            filter: drop-shadow(0 20px 30px rgba(184, 134, 11, 0.25));
+            will-change: transform, filter;
+            backface-visibility: hidden;
+            transform: translateZ(0);
+        }
+
+        @media (min-width: 768px) {
+            #hero-mug {
+                max-height: 65vh;
+                /* Desktop */
+            }
+        }
+
+        .content-section {
+            position: relative;
+            z-index: 50;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2.5rem 1rem;
+            box-sizing: border-box;
+            contain: layout paint;
+        }
+
+        @media (min-width: 768px) {
+            .content-section {
+                padding: 5rem 1.5rem;
+            }
+        }
+
+        /* Ancient Tablet Style */
+        .ancient-card {
+            background-color: #030303;
+            border: 1px solid #b8860b;
+            border-radius: 2px;
+            padding: 2.5rem;
+            box-shadow:
+                0 0 20px rgba(184, 134, 11, 0.15),
+                inset 0 0 40px rgba(0, 0, 0, 0.8);
+            position: relative;
+            will-change: transform, opacity;
+        }
+
+        .ancient-card::before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 15px;
+            height: 15px;
+            border-top: 2px solid #b8860b;
+            border-left: 2px solid #b8860b;
+            opacity: 0.8;
+        }
+
+        .ancient-card::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            width: 15px;
+            height: 15px;
+            border-bottom: 2px solid #b8860b;
+            border-right: 2px solid #b8860b;
+            opacity: 0.8;
+        }
+
+        /* PREMIUM BRIGHT GOLD GRADIENT */
+        .text-metal {
+            background: linear-gradient(to right, #FFD700, #FFFACD, #FFD700);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        /* Navbar & Menu Styles */
+        nav {
+            background: rgba(0, 0, 0, 0.8);
+            /* bg-black/80 */
+            backdrop-filter: blur(12px);
+            /* backdrop-blur-md */
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid #b8860b;
+            /* premium gold border */
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.96);
+            z-index: 90;
+            display: none;
+            opacity: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .menu-link {
+            font-family: 'Cinzel', serif;
+            color: transparent;
+            -webkit-text-stroke: 1px #555;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            opacity: 0;
+            /* Updated by GSAP */
+            transform: translateY(50px);
+            /* Updated by GSAP */
+        }
+
+        .menu-link:hover {
+            color: #b8860b;
+            -webkit-text-stroke: 1px #b8860b;
+            text-shadow: 0 0 30px rgba(184, 134, 11, 0.4);
+        }
+
+        .lang-btn {
+            cursor: pointer;
+            border: 1px solid #b8860b;
+            padding: 5px 15px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            color: #b8860b;
+            font-size: 0.8rem;
+            font-weight: bold;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .lang-btn:hover {
+            background: #b8860b;
+            color: #000;
+            box-shadow: 0 0 15px rgba(184, 134, 11, 0.4);
+        }
+
+        .menu-toggle-btn {
+            cursor: pointer;
+            color: #b8860b;
+            font-weight: bold;
+            font-family: 'Cinzel', serif;
+            letter-spacing: 0.2em;
+            transition: color 0.3s;
+        }
+
+        .menu-toggle-btn:hover {
+            color: #fff;
+            text-shadow: 0 0 10px #b8860b;
+        }
+
+        /* Intro Overlay Styles */
+        #intro-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            pointer-events: auto;
+        }
+
+        .intro-panel {
+            position: absolute;
+            top: 0;
+            width: 50%;
+            height: 100%;
+            background: #000;
+            z-index: 2;
+            border-color: #b8860b;
+            will-change: transform;
+        }
+
+        #panel-left {
+            left: 0;
+            border-right-width: 1px;
+        }
+
+        #panel-right {
+            right: 0;
+            border-left-width: 1px;
+        }
+
+        /* Text readability enhancements */
+        .hero-text-container {
+            position: relative;
+            z-index: 50;
+            background: radial-gradient(closest-side, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0) 100%);
+            padding: 3rem 2rem;
+            border-radius: 50%;
+        }
+
+        /* Transition Container */
+        #page-content-wrapper {
+            transition: opacity 0.3s ease, filter 0.3s ease;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Footer/Feast Animations */
+        @keyframes float-text {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .animate-float {
+            animation: float-text 6s ease-in-out infinite;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Cinematic Intro Structure -->
+    <div id="intro-overlay">
+        <div id="panel-left" class="intro-panel"></div>
+        <div id="panel-right" class="intro-panel"></div>
+
+        <div id="intro-line"
+            class="absolute left-1/2 top-0 bottom-0 w-[2px] bg-[#b8860b] z-[100] origin-top transform scale-y-0 -translate-x-1/2 will-change-transform">
+        </div>
+
+        <div id="intro-logo"
+            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-metal text-5xl md:text-7xl font-black brand-font z-[101] opacity-0 tracking-widest drop-shadow-[0_0_15px_rgba(184,134,11,0.5)] will-change-transform">
+            OTEX
+        </div>
+    </div>
+
+    <!-- FULLSCREEN MENU OVERLAY -->
+    <div id="menu-overlay" class="menu-overlay">
+        <div class="absolute top-6 right-6">
+            <button onclick="toggleMenu()"
+                class="text-[#b8860b] text-4xl hover:text-white transition-colors">&times;</button>
+        </div>
+        <nav class="flex flex-col gap-8 text-center">
+            <a href="index.html" class="menu-link text-5xl md:text-7xl font-black uppercase tracking-widest"
+                style="color: #b8860b; -webkit-text-stroke: 1px #b8860b;" data-i18n="nav_home">მთავარი</a>
+            <a href="about.html" class="menu-link text-5xl md:text-7xl font-black uppercase tracking-widest"
+                data-i18n="nav_history">ჩვენს შესახებ</a>
+            <a href="shop.html" class="menu-link text-5xl md:text-7xl font-black uppercase tracking-widest"
+                data-i18n="nav_craft">პროდუქცია</a>
+            <a href="contact.html" class="menu-link text-5xl md:text-7xl font-black uppercase tracking-widest"
+                data-i18n="nav_order">კონტაქტი</a>
+        </nav>
+    </div>
+
+    <canvas id="particles-canvas"></canvas>
+
+    <!-- FIXED MUG: OUTSIDE WRAPPER -->
+    <div id="fixed-mug-container">
+        <!-- Kept original path -->
+        <img src="index_images/1_clean.webp" id="hero-mug" alt="Spartan Mug" decoding="async" loading="eager">
+    </div>
+
+    <!-- MOVED NAVBAR OUTSIDE WRAPPER and UPGRADED Z-INDEX -->
+    <!-- MOVED NAVBAR OUTSIDE WRAPPER and UPGRADED Z-INDEX -->
+    <nav
+        class="fixed top-0 w-full px-6 py-4 flex justify-between items-center z-[100] opacity-0 nav-animate transition-all duration-500 pointer-events-auto">
+        <a href="index.html"
+            class="text-metal font-bold text-2xl tracking-[0.2em] brand-font cursor-pointer drop-shadow-md">OTEX</a>
+
+        <div class="flex items-center gap-6">
+            <!-- LANGUAGE BTN -->
+            <button class="lang-btn" onclick="toggleLanguageWithTransition()">
+                <span id="lang-text">ENG</span>
+            </button>
+
+            <!-- MENU TRIGGER -->
+            <button
+                class="menu-toggle-btn border border-[#b8860b] px-4 py-1 rounded bg-black/50 hover:bg-[#b8860b] transition-all cursor-pointer relative z-50"
+                onclick="toggleMenu()">
+                MENU
+            </button>
+        </div>
+    </nav>
+
+    <!-- WRAPPER FOR TRANSITIONS -->
+    <div id="page-content-wrapper">
+
+        <section class="content-section text-center max-w-full overflow-hidden">
+            <!-- Hero Text Container w/ Z-Index Fix & Padding -->
+            <div class="hero-text-container w-full">
+                <h2 class="text-[#b8860b] tracking-[0.3em] text-xs md:text-sm mb-4 uppercase animate-pulse font-bold drop-shadow-md"
+                    data-i18n="hero_sub">
+                    შექმნილია ღმერთებისთვის
+                </h2>
+                <!-- Updated Typography -->
+                <h1 class="text-4xl sm:text-6xl md:text-9xl font-black mb-2 py-6 pb-8 brand-font hero-title text-metal opacity-0 break-words leading-relaxed drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)]"
+                    data-i18n="hero_main">
+                    მემკვიდრეობა
+                </h1>
+                <p class="text-gray-200 text-sm md:text-lg tracking-wide hero-subtitle opacity-0 font-medium drop-shadow-md"
+                    data-i18n="hero_desc">
+                    ანტიკური ესთეტიკა. თანამედროვე ინჟინერია.
+                </p>
+            </div>
+
+            <div
+                class="absolute bottom-10 left-1/2 transform -translate-x-1/2 text-[#b8860b] animate-bounce opacity-70 z-20">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                </svg>
+            </div>
+        </section>
+
+        <!-- Features Section 1 (History) - Text Left, Mug Right -->
+        <section id="section-history" class="content-section">
+            <div class="grid grid-cols-1 md:grid-cols-2 w-full max-w-7xl gap-10 items-center px-4">
+                <div class="ancient-card feature-card text-left max-w-full transform translate-y-12 opacity-0">
+                    <h3 class="text-[#b8860b] uppercase tracking-widest text-xs mb-2 font-bold" data-i18n="sec2_tag">
+                        თერმული ტექნოლოგია</h3>
+                    <h2 class="text-2xl md:text-5xl font-bold text-white mb-6 brand-font drop-shadow-lg"
+                        data-i18n="sec2_title">უჟანგავი გული</h2>
+                    <div class="w-16 h-1 bg-[#b8860b] mb-6 shadow-[0_0_10px_#b8860b]"></div>
+                    <p class="text-gray-300 leading-relaxed font-light text-sm md:text-base" data-i18n="sec2_desc">
+                        ბრძოლის ველზე ნაწრთობი ვიზუალის მიღმა იმალება <span class="text-[#b8860b]">უჟანგავი
+                            ფოლადის</span> კაფსულა. ის ინარჩუნებს ლუდს ყინულივით ცივს 12 საათის განმავლობაში, ხოლო ყავას
+                        - ცხელს 6 საათამდე.
+                    </p>
+                    <div class="mt-6 flex gap-6">
+                        <div class="flex items-center gap-3">
+                            <span class="text-xl md:text-2xl">❄️</span>
+                            <span class="text-[10px] md:text-xs text-[#b8860b] font-bold uppercase"
+                                data-i18n="cold_time">12სთ ცივი</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-xl md:text-2xl">🔥</span>
+                            <span class="text-[10px] md:text-xs text-[#b8860b] font-bold uppercase"
+                                data-i18n="hot_time">6სთ ცხელი</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="hidden md:block"></div> <!-- Spacer for mug (Right) -->
+            </div>
+        </section>
+
+        <!-- Features Section 2 - Text Right, Mug Left -->
+        <section id="section-craft" class="content-section">
+            <div class="grid grid-cols-1 md:grid-cols-2 w-full max-w-7xl gap-10 items-center px-4">
+                <div class="hidden md:block"></div> <!-- Spacer for mug (Left) -->
+                <div class="ancient-card feature-card text-right max-w-full transform translate-y-12 opacity-0">
+                    <h3 class="text-[#b8860b] uppercase tracking-widest text-xs mb-2 font-bold" data-i18n="sec3_tag">
+                        ხელნაკეთი დეტალები</h3>
+                    <h2 class="text-2xl md:text-5xl font-bold text-white mb-6 brand-font drop-shadow-lg"
+                        data-i18n="sec3_title">3D რელიეფური ჯავშანი</h2>
+                    <div class="w-16 h-1 bg-[#b8860b] mb-6 ml-auto shadow-[0_0_10px_#b8860b]"></div>
+                    <p class="text-gray-300 leading-relaxed font-light text-sm md:text-base" data-i18n="sec3_desc">
+                        მაღალი ხარისხის რეზინი იმეორებს ანტიკური ბრინჯაოსა და გაცვეთილი ტყავის ფაქტურას. თითოეული კუნთი,
+                        ფარი და შუბი შესრულებულია მაღალი სიზუსტის რელიეფში.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section id="main-footer"
+            class="relative z-50 h-screen w-full flex items-center justify-center overflow-hidden">
+            <!-- Image Opacity 0.9 -->
+            <img src="index_images/4.webp"
+                class="absolute inset-0 w-full h-full object-cover opacity-90 scale-110 scroll-zoom-image" alt="Feast"
+                decoding="async" loading="lazy">
+
+            <!-- Vignette -->
+            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/40"></div>
+
+            <!-- Content -->
+            <div
+                class="relative z-10 text-center px-6 max-w-4xl w-full flex flex-col items-center justify-center animate-float">
+                <div class="p-8 rounded-[50%] bg-radial-gradient(closest-side, rgba(0,0,0,0.5), transparent)">
+                    <h2 class="text-5xl md:text-8xl brand-font text-metal mb-8 pb-8 drop-shadow-[0_5px_5px_rgba(0,0,0,1)] scale-90 opacity-0 footer-anim leading-relaxed"
+                        data-i18n="footer_title">
+                        დიდება გელოდება
+                    </h2>
+                    <div
+                        class="w-24 md:w-32 h-[3px] bg-[#b8860b] mx-auto mb-8 footer-anim opacity-0 shadow-[0_0_15px_#b8860b]">
+                    </div>
+                    <p class="text-white mb-10 text-xl md:text-2xl footer-anim opacity-0 font-medium tracking-wide drop-shadow-[0_2px_4px_rgba(0,0,0,1)]"
+                        data-i18n="footer_desc">
+                        ლიმიტირებული რაოდენობა. გახდი ლეგენდის ნაწილი, სანამ მარაგი ამოიწურება.
+                    </p>
+                    <a href="https://www.facebook.com/OtexGeo" target="_blank"
+                        class="footer-anim opacity-0 inline-block group relative px-10 py-5 md:px-16 md:py-6 bg-transparent border-2 border-[#b8860b] text-[#b8860b] font-black text-xl uppercase tracking-widest overflow-hidden transition-all hover:text-black cursor-pointer shadow-[0_0_20px_rgba(184,134,11,0.3)] hover:shadow-[0_0_40px_rgba(184,134,11,0.6)]">
+                        <span
+                            class="absolute inset-0 w-full h-full bg-[#b8860b] transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300 ease-out"></span>
+                        <span class="relative z-10 drop-shadow-md" data-i18n="buy_btn">შეკვეთა - 49 ₾</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // --- TRANSLATION LOGIC ---
+        const translations = {
+            ka: {
+                nav_home: "მთავარი",
+                nav_history: "ჩვენს შესახებ",
+                nav_craft: "პროდუქცია",
+                nav_order: "კონტაქტი",
+                hero_sub: "შექმნილია ღმერთებისთვის",
+                hero_main: "მემკვიდრეობა",
+                hero_desc: "ანტიკური ესთეტიკა. თანამედროვე ინჟინერია.",
+                sec2_tag: "თერმული ტექნოლოგია",
+                sec2_title: "უჟანგავი გული",
+                sec2_desc: "ბრძოლის ველზე ნაწრთობი ვიზუალის მიღმა იმალება <span class='text-[#b8860b]'>უჟანგავი ფოლადის</span> კაფსულა. ის ინარჩუნებს ლუდს ყინულივით ცივს 12 საათის განმავლობაში, ხოლო ყავას - ცხელს 6 საათამდე.",
+                cold_time: "12სთ ცივი",
+                hot_time: "6სთ ცხელი",
+                sec3_tag: "ხელნაკეთი დეტალები",
+                sec3_title: "3D რელიეფური ჯავშანი",
+                sec3_desc: "მაღალი ხარისხის რეზინი იმეორებს ანტიკური ბრინჯაოსა და გაცვეთილი ტყავის ფაქტურას. თითოეული კუნთი, ფარი და შუბი შესრულებულია მაღალი სიზუსტის რელიეფში.",
+                footer_title: "დიდება გელოდება",
+                footer_desc: "ლიმიტირებული რაოდენობა. გახდი ლეგენდის ნაწილი, სანამ მარაგი ამოიწურება.",
+                buy_btn: "შეკვეთა - 49 ₾"
+            },
+            en: {
+                nav_home: "HOME",
+                nav_history: "ABOUT US",
+                nav_craft: "PRODUCTS",
+                nav_order: "CONTACT",
+                hero_sub: "FORGED FOR THE GODS",
+                hero_main: "LEGACY",
+                hero_desc: "Ancient Aesthetics. Modern Engineering.",
+                sec2_tag: "THERMAL TECHNOLOGY",
+                sec2_title: "STAINLESS CORE",
+                sec2_desc: "Beneath the rugged, battle-worn exterior lies a precision-engineered <span class='text-[#b8860b]'>double-wall stainless steel</span> chamber. It keeps your ale ice-cold for 12 hours or your coffee molten-hot for 6.",
+                cold_time: "12h Cold",
+                hot_time: "6h Hot",
+                sec3_tag: "ARTISAN DETAIL",
+                sec3_title: "3D RELIEF ARMOR",
+                sec3_desc: "High-quality resin mimics the texture of ancient bronze and worn leather. Every muscle, every shield, and every spear is sculpted in high-definition relief.",
+                footer_title: "VALHALLA AWAITS",
+                footer_desc: "Limited edition run. Claim your piece of history before it fades into legend.",
+                buy_btn: "ORDER NOW - 49 ₾"
+            }
+        };
+
+        // Initialize Language from Storage
+        let currentLang = localStorage.getItem('otex_lang') || 'ka';
+
+        // Apply immediately on load (No animation)
+        function applyLanguageImmediate() {
+            document.getElementById('lang-text').innerText = currentLang === 'ka' ? 'ENG' : 'GEO';
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[currentLang][key]) {
+                    el.innerHTML = translations[currentLang][key];
+                }
+            });
+        }
+
+        // NEW: Smooth Transition Language Toggle
+        function toggleLanguageWithTransition() {
+            const wrapper = document.getElementById('page-content-wrapper');
+            // 1. Fade Out & Blur
+            gsap.to(wrapper, {
+                opacity: 0,
+                filter: "blur(5px)",
+                duration: 0.3,
+                onComplete: () => {
+                    // Update & Save
+                    currentLang = currentLang === 'ka' ? 'en' : 'ka';
+                    localStorage.setItem('otex_lang', currentLang);
+
+                    applyLanguageImmediate();
+
+                    // 3. Fade In & Restore
+                    gsap.to(wrapper, {
+                        opacity: 1,
+                        filter: "blur(0px)",
+                        duration: 0.3
+                    });
+                }
+            });
+        }
+
+        function toggleLanguageData() {
+            // Deprecated for direct use in applyLanguageImmediate, but kept if needed for reference, 
+            // though the logic is now inside applyLanguageImmediate and the transition function.
+        }
+        // --- შესწორება: ცვლადის დამატება ---
+        let menuOpen = false;
+        // ----------------------------------
+        // NEW: Full Screen Menu Toggle
+        function toggleMenu() {
+            const overlay = document.getElementById('menu-overlay');
+            const links = document.querySelectorAll('.menu-link');
+
+            if (!menuOpen) {
+                // Open
+                menuOpen = true;
+                overlay.style.display = 'flex';
+
+                // Animation Timeline
+                const tl = gsap.timeline();
+                tl.to(overlay, { opacity: 1, duration: 0.5 })
+                    .to(links, {
+                        y: 0,
+                        opacity: 1,
+                        duration: 0.4,
+                        stagger: 0.1,
+                        ease: "power2.out"
+                    }, "-=0.2");
+            } else {
+                // Close
+                menuOpen = false;
+                const tl = gsap.timeline({
+                    onComplete: () => {
+                        overlay.style.display = 'none';
+                    }
+                });
+                tl.to(links, {
+                    y: 50,
+                    opacity: 0,
+                    duration: 0.3,
+                    stagger: 0.05
+                })
+                    .to(overlay, { opacity: 0, duration: 0.4 }, "-=0.2");
+            }
+        }
+
+        // --- PARTICLE SYSTEM ---
+        const canvas = document.getElementById('particles-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let w, h;
+
+        function resizeCanvas() {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * w;
+                this.y = Math.random() * h;
+                this.size = Math.random() * 2;
+                this.speedY = Math.random() * 0.4 + 0.1;
+                this.speedX = (Math.random() - 0.5) * 0.2;
+                this.opacity = Math.random() * 0.5 + 0.2;
+                this.color = `rgba(184, 134, 11, ${this.opacity})`;
+            }
+            update() {
+                this.y -= this.speedY;
+                this.x += this.speedX;
+                if (this.y < 0) {
+                    this.y = h;
+                    this.x = Math.random() * w;
+                }
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            const count = window.innerWidth < 768 ? 20 : 60; // RESTORED OPTIMIZATION
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, w, h);
+
+            // Optimization: Single Path or Batch?
+            // Actually, for individual opacity, we need separate fills or globalAlpha.
+            // But we can check bounds.
+            particles.forEach(p => {
+                p.update();
+                // Performance Check: Only draw if on screen (with slight buffer for radius)
+                if (p.x > -50 && p.x < w + 50 && p.y > -50 && p.y < h + 50) {
+                    p.draw();
+                }
+            });
+            requestAnimationFrame(animateParticles);
+        }
+
+        // --- GSAP ANIMATIONS ---
+        gsap.registerPlugin(ScrollTrigger);
+
+        // PERFORMANCE: Auto-sleep limits CPU usage when idle
+        gsap.config({ autoSleep: 60, force3D: true });
+
+        // WAIT FOR LOAD BEFORE STARTING INTRO & ANIMATIONS
+        window.addEventListener('load', () => {
+            applyLanguageImmediate(); // Apply lang stored
+            initParticles();
+            animateParticles();
+
+            // CINEMATIC INTRO SEQUENCE
+            const introTl = gsap.timeline({
+                onComplete: () => {
+                    const overlay = document.getElementById('intro-overlay');
+                    overlay.style.opacity = '0';
+                    setTimeout(() => overlay.style.display = 'none', 500);
+                }
+            });
+
+            introTl.to("#intro-line", { scaleY: 1, duration: 1.2, ease: "power2.inOut", force3D: true })
+                .to("#intro-logo", { opacity: 1, duration: 0.8, force3D: true }, "-=0.4")
+                .to({}, { duration: 0.5 })
+                .to("#intro-line", { opacity: 0, duration: 0.3, force3D: true }, "split")
+                .to("#intro-logo", { opacity: 0, scale: 1.2, duration: 0.5, force3D: true }, "split")
+                .to("#panel-left", { xPercent: -100, duration: 1.5, ease: "power4.inOut", force3D: true }, "split")
+                .to("#panel-right", { xPercent: 100, duration: 1.5, ease: "power4.inOut", force3D: true }, "split")
+                .from("#hero-mug", { scale: 1.4, duration: 1.8, ease: "power2.out", force3D: true }, "split+=0.2")
+                .to(".nav-animate", { y: 0, opacity: 1, duration: 1, force3D: true }, "split+=0.8")
+                .to(".hero-title", { opacity: 1, duration: 1, force3D: true }, "split+=0.8")
+                .to(".hero-subtitle", { opacity: 1, duration: 1, force3D: true }, "split+=1");
+
+            // --- SCROLL LOGIC: SMOOTHNESS ENHANCED ---
+            let mm = gsap.matchMedia();
+
+            // 1. DESKTOP ANIMATION
+            mm.add("(min-width: 800px)", () => {
+                const tl = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: "body",
+                        start: "top top",
+                        end: "bottom bottom",
+                        scrub: 1.5, // 1. Increased Smoothing (Inertia)
+                        overwrite: 'auto'
+                    }
+                });
+
+                // MOVEMENT 1: To RIGHT (Because Section 1 Text is Left)
+                tl.to("#hero-mug", {
+                    x: window.innerWidth * 0.25,
+                    scale: 1.6,
+                    rotation: 15,
+                    duration: 2,
+                    ease: "none",
+                    force3D: true
+                })
+                    // MOVEMENT 2: To LEFT (Because Section 2 Text is Right)
+                    .to("#hero-mug", {
+                        x: -window.innerWidth * 0.25,
+                        scale: 1.7,
+                        rotation: -15,
+                        duration: 2,
+                        ease: "none",
+                        force3D: true
+                    });
+
+                // FADE OUT TRIGGER - STRICT (Must die before footer)
+                gsap.to("#hero-mug", {
+                    scrollTrigger: {
+                        trigger: "#main-footer",
+                        start: "top bottom", // When footer top hits viewport bottom
+                        end: "top 20%", // Finish before it covers too much
+                        scrub: true
+                    },
+                    scale: 0.5,
+                    opacity: 0,
+                    filter: "blur(10px)",
+                    immediateRender: false,
+                    force3D: true
+                });
+            });
+
+            // 2. MOBILE ANIMATION
+            mm.add("(max-width: 799px)", () => {
+                const tl = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: "body",
+                        start: "top top",
+                        end: "bottom bottom",
+                        scrub: 1.5, // Increased Smoothing
+                        overwrite: 'auto'
+                    }
+                });
+
+                tl.to("#hero-mug", {
+                    x: 0,
+                    scale: 1.15,
+                    rotation: 5,
+                    duration: 2,
+                    ease: "none", // LINEAR EASE
+                    force3D: true
+                })
+                    .to("#hero-mug", {
+                        x: 0,
+                        scale: 1.15,
+                        rotation: -5,
+                        duration: 2,
+                        ease: "none", // LINEAR EASE
+                        force3D: true
+                    });
+
+                // FADE OUT TRIGGER - STRICT MOBILE
+                gsap.to("#hero-mug", {
+                    scrollTrigger: {
+                        trigger: "#main-footer",
+                        start: "top bottom",
+                        end: "top 20%",
+                        scrub: true
+                    },
+                    scale: 0.8,
+                    opacity: 0,
+                    immediateRender: false,
+                    force3D: true
+                });
+            });
+
+            // Feature Cards: Premium Wave Stagger Animation
+            gsap.utils.toArray(".feature-card").forEach(card => {
+                const tl = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: card,
+                        start: "top 80%",
+                        toggleActions: "play none none reverse"
+                    }
+                });
+
+                tl.to(card, {
+                    opacity: 1,
+                    y: 0,
+                    duration: 0.5,
+                    ease: "power3.out"
+                })
+                    .from(card.children, {
+                        y: 30,
+                        opacity: 0,
+                        duration: 1,
+                        stagger: 0.15,
+                        ease: "power3.out"
+                    }, "-=0.2");
+            });
+
+            // Footer Parallax (BUG FIXED: ID TARGET)
+            gsap.to(".scroll-zoom-image", {
+                scale: 1,
+                force3D: true,
+                scrollTrigger: {
+                    trigger: "#main-footer",
+                    start: "top bottom",
+                    end: "bottom bottom",
+                    scrub: true,
+                    overwrite: 'auto'
+                }
+            });
+
+            // Footer Elements Reveal (BUG FIXED: ID TARGET)
+            gsap.utils.toArray(".footer-anim").forEach((el, index) => {
+                gsap.to(el, {
+                    opacity: 1,
+                    y: 0,
+                    duration: 1,
+                    delay: index * 0.1,
+                    force3D: true,
+                    scrollTrigger: {
+                        trigger: "#main-footer",
+                        start: "top 60%",
+                        overwrite: 'auto'
+                    }
+                });
+            });
+
+            window.addEventListener('resize', () => ScrollTrigger.refresh());
+        });
+
+    </script>
+</body>
+
+</html>

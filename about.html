@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="ka">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OTEX | About Us</title>
+    <link rel="icon" type="image/png" href="index_images/tab_images.png">
+
+    <!-- Preload Critical Assets -->
+    <link rel="preload" as="image" href="index_images/5_clean.webp">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Noto+Serif+Georgian:wght@400;700;900&family=Noto+Sans+Georgian:wght@300;400;600&family=Exo+2:wght@300;600&display=swap"
+        rel="stylesheet">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #050505;
+            color: #e5e5e5;
+            font-family: 'Noto Sans Georgian', 'Exo 2', sans-serif;
+            overflow-x: hidden;
+        }
+
+        h1,
+        h2,
+        .brand-font {
+            font-family: 'Noto Serif Georgian', 'Cinzel', serif;
+        }
+
+        #particles-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%);
+            pointer-events: none;
+        }
+
+        .ancient-card {
+            background-color: #030303;
+            border: 1px solid #b8860b;
+            border-radius: 2px;
+            padding: 2.5rem;
+            box-shadow: 0 0 20px rgba(184, 134, 11, 0.15), inset 0 0 40px rgba(0, 0, 0, 0.8);
+            position: relative;
+        }
+
+        .ancient-card::before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 15px;
+            height: 15px;
+            border-top: 2px solid #b8860b;
+            border-left: 2px solid #b8860b;
+            opacity: 0.8;
+        }
+
+        .ancient-card::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            width: 15px;
+            height: 15px;
+            border-bottom: 2px solid #b8860b;
+            border-right: 2px solid #b8860b;
+            opacity: 0.8;
+        }
+
+        .text-metal {
+            background: linear-gradient(to right, #FFD700, #FFFACD, #FFD700);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        nav {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid #b8860b;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.96);
+            z-index: 90;
+            display: none;
+            opacity: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .menu-link {
+            font-family: 'Cinzel', serif;
+            color: transparent;
+            -webkit-text-stroke: 1px #555;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            opacity: 0;
+            transform: translateY(50px);
+        }
+
+        .menu-link:hover {
+            color: #b8860b;
+            -webkit-text-stroke: 1px #b8860b;
+            text-shadow: 0 0 30px rgba(184, 134, 11, 0.4);
+        }
+
+        .lang-btn {
+            cursor: pointer;
+            border: 1px solid #b8860b;
+            padding: 5px 15px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            color: #b8860b;
+            font-size: 0.8rem;
+            font-weight: bold;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .lang-btn:hover {
+            background: #b8860b;
+            color: #000;
+            box-shadow: 0 0 15px rgba(184, 134, 11, 0.4);
+        }
+
+        .menu-toggle-btn {
+            cursor: pointer;
+            color: #b8860b;
+            font-weight: bold;
+            font-family: 'Cinzel', serif;
+            letter-spacing: 0.2em;
+            transition: color 0.3s;
+        }
+
+        .menu-toggle-btn:hover {
+            color: #fff;
+            text-shadow: 0 0 10px #b8860b;
+        }
+
+        #page-content-wrapper {
+            transition: opacity 0.3s ease, filter 0.3s ease;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="menu-overlay" class="menu-overlay">
+        <div class="absolute top-6 right-6">
+            <button onclick="toggleMenu()"
+                class="text-[#b8860b] text-4xl hover:text-white transition-colors">&times;</button>
+        </div>
+        <nav class="flex flex-col gap-8 text-center">
+            <a href="index.html" class="menu-link text-5xl md:text-7xl font-black uppercase tracking-widest"
+                data-i18n="nav_home">მთავარი</a>
+            <a href="about.html" class="menu-link text-5xl md:text-7xl font-black uppercase tracking-widest"
+                style="color: #b8860b; -webkit-text-stroke: 1px #b8860b;" data-i18n="nav_history">ჩვენს შესახებ</a>
+            <a href="shop.html" class="menu-link text-5xl md:text-7xl font-black uppercase tracking-widest"
+                data-i18n="nav_craft">პროდუქცია</a>
+            <a href="contact.html" class="menu-link text-5xl md:text-7xl font-black uppercase tracking-widest"
+                data-i18n="nav_order">კონტაქტი</a>
+        </nav>
+    </div>
+
+    <canvas id="particles-canvas"></canvas>
+
+    <!-- MOVED NAVBAR OUTSIDE WRAPPER and UPGRADED Z-INDEX -->
+    <nav class="fixed top-0 w-full px-6 py-4 flex justify-between items-center z-[100]">
+        <a href="index.html"
+            class="text-metal font-bold text-2xl tracking-[0.2em] brand-font cursor-pointer drop-shadow-md">OTEX</a>
+        <div class="flex items-center gap-6">
+            <button class="lang-btn" onclick="toggleLanguageWithTransition()">
+                <span id="lang-text">ENG</span>
+            </button>
+            <div class="menu-toggle-btn border border-[#b8860b] px-4 py-1 rounded bg-black/50 hover:bg-[#b8860b] transition-all"
+                onclick="toggleMenu()">
+                MENU
+            </div>
+        </div>
+    </nav>
+
+    <div id="page-content-wrapper">
+
+        <section class="min-h-screen flex flex-col justify-center items-center px-4 pt-32 pb-12">
+            <div class="w-full max-w-7xl grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+
+                <!-- Text Content -->
+                <div class="ancient-card opacity-0 stagger-entry">
+                    <h1 class="text-4xl md:text-6xl font-black mb-6 brand-font text-metal pb-4" data-i18n="about_title">
+                        ჩვენი ისტორია</h1>
+                    <div class="w-16 h-1 bg-[#b8860b] mb-8 shadow-[0_0_10px_#b8860b]"></div>
+                    <p class="text-gray-300 leading-relaxed text-lg mb-6" data-i18n="about_desc1">
+                        OTEX არ არის უბრალოდ ბრენდი. ეს არის იდეა, რომელიც დაიბადა ანტიკური საბრძოლო სულისკვეთებისა და
+                        თანამედროვე ცივი გონების შერწყმით. ჩვენ გვჯერა, რომ ყოველდღიური ნივთებიც კი უნდა ატარებდნენ
+                        დიდებულებას.
+                    </p>
+                    <p class="text-gray-300 leading-relaxed text-lg" data-i18n="about_desc2">
+                        ჩვენი თითოეული პროდუქტი იქმნება ხელით, უმაღლესი ხარისხის მასალებისგან, რათა გაუძლოს დროს და
+                        ემსახუროს თავის მფლობელს ერთგულად, როგორც სპარტანელი მეომარი.
+                    </p>
+                </div>
+
+                <!-- Featured Image -->
+                <div class="relative h-[60vh] flex justify-center items-center opacity-0 stagger-entry scale-90">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-t from-[#b8860b]/20 to-transparent rounded-full blur-3xl">
+                    </div>
+                    <img src="index_images/5_clean.webp" alt="Spartan Mug Upright"
+                        class="relative z-10 w-auto h-full object-contain drop-shadow-[0_20px_50px_rgba(184,134,11,0.3)]">
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Shared Footer -->
+        <section id="main-footer"
+            class="relative py-24 w-full flex items-center justify-center overflow-hidden border-t border-[#b8860b]/30">
+            <div class="relative z-10 text-center px-6">
+                <h2 class="text-3xl md:text-5xl brand-font text-metal mb-8" data-i18n="footer_contact">
+                    დაგვიკავშირდით
+                </h2>
+
+                <div class="flex justify-center items-center gap-6 text-[#b8860b]">
+                    <a href="https://www.facebook.com/OtexGeo" target="_blank"
+                        class="group transition-all duration-300 hover:scale-110">
+                        <svg fill="currentColor" viewBox="0 0 24 24"
+                            class="w-10 h-10 group-hover:text-white transition-colors duration-300">
+                            <path
+                                d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                        </svg>
+                    </a>
+                </div>
+
+                <p class="mt-8 text-gray-400 text-sm">© 2026 OTEX based in Georgia.</p>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        // Start Particles
+        // --- PARTICLE SYSTEM ---
+        const canvas = document.getElementById('particles-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let w, h;
+
+        function resizeCanvas() {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * w;
+                this.y = Math.random() * h;
+                this.size = Math.random() * 2;
+                this.speedY = Math.random() * 0.4 + 0.1;
+                this.speedX = (Math.random() - 0.5) * 0.2;
+                this.opacity = Math.random() * 0.5 + 0.2;
+                this.color = `rgba(184, 134, 11, ${this.opacity})`;
+            }
+            update() {
+                this.y -= this.speedY;
+                this.x += this.speedX;
+                if (this.y < 0) {
+                    this.y = h;
+                    this.x = Math.random() * w;
+                }
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            const count = window.innerWidth < 768 ? 20 : 60;
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, w, h);
+            particles.forEach(p => {
+                p.update();
+                if (p.x > -50 && p.x < w + 50 && p.y > -50 && p.y < h + 50) {
+                    p.draw();
+                }
+            });
+            requestAnimationFrame(animateParticles);
+        }
+
+        initParticles();
+        animateParticles();
+
+        // Menu & Lang Logic
+        let menuOpen = false;
+        function toggleMenu() {
+            const overlay = document.getElementById('menu-overlay');
+            const links = document.querySelectorAll('.menu-link');
+            if (!menuOpen) {
+                menuOpen = true; overlay.style.display = 'flex';
+                gsap.to(overlay, { opacity: 1, duration: 0.5 });
+                gsap.to(links, { y: 0, opacity: 1, duration: 0.4, stagger: 0.1, ease: "power2.out", delay: 0.2 });
+            } else {
+                menuOpen = false;
+                gsap.to(links, { y: 50, opacity: 0, duration: 0.3, stagger: 0.05 });
+                gsap.to(overlay, { opacity: 0, duration: 0.4, delay: 0.2, onComplete: () => { overlay.style.display = 'none' } });
+            }
+        }
+
+        // Initialize Language from Storage
+        let currentLang = localStorage.getItem('otex_lang') || 'ka';
+
+        // Apply immediately on load (No animation)
+        function applyLanguageImmediate() {
+            document.getElementById('lang-text').innerText = currentLang === 'ka' ? 'ENG' : 'GEO';
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[currentLang][key]) {
+                    el.innerHTML = translations[currentLang][key];
+                }
+            });
+        }
+
+        const translations = {
+            ka: {
+                nav_home: "მთავარი", nav_history: "ჩვენს შესახებ", nav_craft: "პროდუქცია", nav_order: "კონტაქტი",
+                about_title: "ჩვენი ისტორია",
+                about_desc1: "OTEX არ არის უბრალოდ ბრენდი. ეს არის იდეა, რომელიც დაიბადა ანტიკური საბრძოლო სულისკვეთებისა და თანამედროვე ცივი გონების შერწყმით. ჩვენ გვჯერა, რომ ყოველდღიური ნივთებიც კი უნდა ატარებდნენ დიდებულებას.",
+                about_desc2: "ჩვენი თითოეული პროდუქტი იქმნება ხელით, უმაღლესი ხარისხის მასალებისგან, რათა გაუძლოს დროს და ემსახუროს თავის მფლობელს ერთგულად, როგორც სპარტანელი მეომარი.",
+                footer_contact: "დაგვიკავშირდით"
+            },
+            en: {
+                nav_home: "HOME", nav_history: "ABOUT US", nav_craft: "PRODUCTS", nav_order: "CONTACT",
+                about_title: "OUR LEGACY",
+                about_desc1: "OTEX is not just a brand. It is an idea born from the fusion of ancient martial spirit and modern cool-headed engineering. We believe everyday objects should carry grandeur.",
+                about_desc2: "Each of our products is crafted by hand from the highest quality materials to withstand time and serve its owner faithfully, like a Spartan warrior.",
+                footer_contact: "CONTACT US"
+            }
+        };
+
+        function toggleLanguageWithTransition() {
+            const wrapper = document.getElementById('page-content-wrapper');
+            gsap.to(wrapper, {
+                opacity: 0, filter: "blur(5px)", duration: 0.3, onComplete: () => {
+                    // Update State & Storage
+                    currentLang = currentLang === 'ka' ? 'en' : 'ka';
+                    localStorage.setItem('otex_lang', currentLang);
+
+                    applyLanguageImmediate();
+
+                    gsap.to(wrapper, { opacity: 1, filter: "blur(0px)", duration: 0.3 });
+                }
+            });
+        }
+
+        // ENTRY ANIMATION & INITIAL LANG
+        window.addEventListener('load', () => {
+            applyLanguageImmediate(); // Apply lang stored
+            gsap.to(".stagger-entry", { y: 0, scale: 1, opacity: 1, duration: 1, stagger: 0.2, ease: "power3.out" });
+        });
+    </script>
+</body>
+
+</html>

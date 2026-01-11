@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="ka">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OTEX | The Armory</title>
+    <link rel="icon" type="image/png" href="index_images/tab_images.png">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Noto+Serif+Georgian:wght@400;700;900&family=Noto+Sans+Georgian:wght@300;400;600&display=swap"
+        rel="stylesheet">
+
+    <!-- GSAP & Plugins -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <style>
+        body {
+            background-color: #050505;
+            color: #e5e5e5;
+            font-family: 'Noto Sans Georgian', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* HIDE DEFAULT CURSOR ON DESKTOP */
+        @media (min-width: 1024px) {
+            body {
+                cursor: none;
+            }
+
+            a,
+            button,
+            input,
+            select {
+                cursor: none;
+            }
+        }
+
+        h1,
+        h2,
+        .brand-font {
+            font-family: 'Noto Serif Georgian', 'Cinzel', serif;
+        }
+
+        .text-metal {
+            background: linear-gradient(to right, #FFD700, #FFFACD, #FFD700);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        #particles-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%);
+            pointer-events: none;
+        }
+
+        /* --- CUSTOM TARGET CURSOR --- */
+        #cursor-dot,
+        #cursor-ring {
+            position: fixed;
+            top: 0;
+            left: 0;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            display: none;
+            /* Hidden by default (mobile) */
+        }
+
+        @media (min-width: 1024px) {
+
+            #cursor-dot,
+            #cursor-ring {
+                display: block;
+            }
+        }
+
+        #cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #b8860b;
+            box-shadow: 0 0 10px #b8860b;
+        }
+
+        #cursor-ring {
+            width: 40px;
+            height: 40px;
+            border: 1px solid rgba(184, 134, 11, 0.5);
+            transition: width 0.3s, height 0.3s, border-color 0.3s, background-color 0.3s;
+        }
+
+        /* Hover State Class */
+        body.hovering #cursor-dot {
+            opacity: 0;
+        }
+
+        /* Hide dot on hover? Or keep? Let's hide dot to focus ring. */
+        body.hovering #cursor-ring {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(184, 134, 11, 0.1);
+            border-color: #b8860b;
+            box-shadow: 0 0 20px rgba(184, 134, 11, 0.2);
+            mix-blend-mode: screen;
+        }
+
+        /* Minimal Crosshair Marks */
+        #cursor-ring::after,
+        #cursor-ring::before {
+            content: '';
+            position: absolute;
+            background: #b8860b;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        #cursor-ring::after {
+            width: 4px;
+            height: 1px;
+        }
+
+        #cursor-ring::before {
+            width: 1px;
+            height: 4px;
+        }
+
+        body.hovering #cursor-ring::after,
+        body.hovering #cursor-ring::before {
+            opacity: 1;
+        }
+
+
+        /* Navbar & Standard Styles */
+        nav {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid #b8860b;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.96);
+            z-index: 90;
+            display: none;
+            opacity: 0;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(20px);
+        }
+
+        .menu-link {
+            font-family: 'Cinzel', serif;
+            color: transparent;
+            -webkit-text-stroke: 1px #555;
+            transition: 0.3s;
+            opacity: 0;
+            transform: translateY(50px);
+            text-decoration: none;
+            cursor: none;
+        }
+
+        .menu-link:hover {
+            color: #b8860b;
+            -webkit-text-stroke: 1px #b8860b;
+            text-shadow: 0 0 30px rgba(184, 134, 11, 0.4);
+        }
+
+        .lang-btn {
+            cursor: none;
+            border: 1px solid #b8860b;
+            padding: 5px 15px;
+            border-radius: 4px;
+            transition: 0.3s;
+            color: #b8860b;
+            font-size: 0.8rem;
+            font-weight: bold;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .lang-btn:hover {
+            background: #b8860b;
+            color: #000;
+            box-shadow: 0 0 15px rgba(184, 134, 11, 0.4);
+        }
+
+        .menu-toggle-btn {
+            cursor: none;
+            color: #b8860b;
+            font-weight: bold;
+            font-family: 'Cinzel', serif;
+            letter-spacing: 0.2em;
+            transition: 0.3s;
+        }
+
+        .menu-toggle-btn:hover {
+            color: #fff;
+            text-shadow: 0 0 10px #b8860b;
+        }
+
+        /* Bento Grid styles from previous step... */
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(1, 1fr);
+            grid-auto-rows: 250px;
+            grid-auto-flow: dense;
+            gap: 1rem;
+        }
+
+        @media(min-width: 768px) {
+            .bento-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media(min-width: 1024px) {
+            .bento-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        /* BENTO CARD (Refined Softened Spartan) */
+        .bento-card {
+            background-color: #0f0f0f;
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            cursor: none;
+            transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            border: none;
+            box-shadow: inset 0 0 0 1px rgba(184, 134, 11, 0.3), inset 0 0 20px rgba(0, 0, 0, 0.8), 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .bento-card:hover {
+            transform: scale(1.02);
+            z-index: 10;
+            box-shadow: inset 0 0 0 1px #b8860b, 0 0 30px rgba(184, 134, 11, 0.2);
+        }
+
+        .bento-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, black 0%, rgba(0, 0, 0, 0.8) 30%, transparent 80%);
+            z-index: 10;
+            border-radius: 16px;
+        }
+
+        .card-bg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.7s ease;
+            opacity: 0.9;
+            border-radius: 12px;
+        }
+
+        .bento-card:hover .card-bg {
+            transform: scale(1.1);
+            opacity: 1;
+        }
+
+        .card-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            padding: 1.5rem;
+            z-index: 20;
+            width: 100%;
+        }
+
+        .price-sticker {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            border: 1px solid #b8860b;
+            color: #b8860b;
+            padding: 4px 10px;
+            font-weight: bold;
+            border-radius: 6px;
+            z-index: 20;
+            font-family: 'Cinzel', serif;
+        }
+
+        .col-span-2 {
+            grid-column: span 1;
+            grid-row: span 1;
+        }
+
+        @media(min-width: 768px) {
+            .col-span-2 {
+                grid-column: span 2;
+                grid-row: span 2;
+            }
+        }
+
+        .col-span-wide {
+            grid-column: span 1;
+        }
+
+        @media(min-width: 768px) {
+            .col-span-wide {
+                grid-column: span 2;
+                grid-row: span 1;
+            }
+        }
+
+        .col-span-tall {
+            grid-row: span 2;
+        }
+
+        .filter-input {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #333;
+            color: #ccc;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            outline: none;
+            transition: 0.3s;
+            cursor: none;
+        }
+
+        .filter-input:focus {
+            border-color: #b8860b;
+            color: #fff;
+        }
+
+        /* Modal etc... */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 999;
+            background: rgba(0, 0, 0, 0.98);
+            display: none;
+            opacity: 0;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(20px);
+            cursor: auto;
+        }
+
+        /* Modal can have default cursor inside for ease? Or keep custom? Let's keep custom. */
+
+        .modal-content {
+            background: #000;
+            border: 1px solid #b8860b;
+            box-shadow: 0 0 100px rgba(184, 134, 11, 0.3);
+            width: 95%;
+            max-width: 1200px;
+            height: 85vh;
+            display: grid;
+            grid-template-columns: 1fr;
+            overflow: hidden;
+            border-radius: 4px;
+        }
+
+        @media(min-width: 768px) {
+            .modal-content {
+                grid-template-columns: 1.2fr 0.8fr;
+            }
+        }
+
+        .modal-image-col {
+            position: relative;
+            background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            padding: 2rem;
+        }
+
+        .modal-info-col {
+            position: relative;
+            background: #000;
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border-left: 1px solid #333;
+        }
+
+        .modal-btn {
+            background: #b8860b;
+            color: #000;
+            font-family: 'Cinzel', serif;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            padding: 1.25rem;
+            width: 100%;
+            text-align: center;
+            transition: all 0.3s ease;
+            margin-top: auto;
+            display: block;
+            cursor: none;
+        }
+
+        .modal-btn:hover {
+            box-shadow: 0 0 30px #b8860b;
+            transform: translateY(-2px);
+            background: #ffd700;
+        }
+
+        .close-modal-btn {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            color: #555;
+            font-size: 2rem;
+            cursor: none;
+            z-index: 50;
+            transition: color 0.3s;
+            line-height: 1;
+        }
+
+        .close-modal-btn:hover {
+            color: #b8860b;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- CUSTOM CURSOR DOM -->
+    <div id="cursor-dot"></div>
+    <div id="cursor-ring"></div>
+
+    <!-- Standard Menu -->
+    <div id="menu-overlay" class="menu-overlay">
+        <div class="absolute top-6 right-6">
+            <button onclick="toggleMenu()"
+                class="text-[#b8860b] text-4xl hover:text-white transition-colors cursor-none">&times;</button>
+        </div>
+        <nav class="flex flex-col gap-8 text-center">
+            <a href="index.html" class="menu-link text-5xl md:text-7xl font-black uppercase tracking-widest"
+                data-i18n="nav_home">მთავარი</a>
+            <a href="about.html" class="menu-link text-5xl md:text-7xl font-black uppercase tracking-widest"
+                data-i18n="nav_history">ჩვენს შესახებ</a>
+            <a href="shop.html" class="menu-link text-5xl md:text-7xl font-black uppercase tracking-widest"
+                style="color: #b8860b; -webkit-text-stroke: 1px #b8860b;" data-i18n="nav_craft">პროდუქცია</a>
+            <a href="contact.html" class="menu-link text-5xl md:text-7xl font-black uppercase tracking-widest"
+                data-i18n="nav_order">კონტაქტი</a>
+        </nav>
+    </div>
+
+    <canvas id="particles-canvas"></canvas>
+
+    <nav class="fixed top-0 w-full px-6 py-4 flex justify-between items-center z-[100]">
+        <a href="index.html"
+            class="text-metal font-bold text-2xl tracking-[0.2em] brand-font drop-shadow-md cursor-none">OTEX</a>
+        <div class="flex items-center gap-6">
+            <button class="lang-btn" onclick="toggleLanguageWithTransition()">
+                <span id="lang-text">ENG</span>
+            </button>
+            <div class="menu-toggle-btn border border-[#b8860b] px-4 py-1 rounded bg-black/50 hover:bg-[#b8860b] transition-all"
+                onclick="toggleMenu()">
+                MENU
+            </div>
+        </div>
+    </nav>
+
+    <!-- CONTENT WRAPPER -->
+    <div id="page-content-wrapper" class="pt-32 pb-24 px-4 min-h-screen">
+        <div class="max-w-7xl mx-auto">
+            <!-- HEADER -->
+            <div class="flex flex-col md:flex-row justify-between items-end mb-12 border-b border-gray-800 pb-6 gap-6">
+                <div>
+                    <h1 class="text-4xl md:text-6xl font-black text-metal mb-2" data-i18n="shop_title">შეიარაღება</h1>
+                    <p class="text-gray-400 uppercase tracking-widest text-sm" data-i18n="shop_total">TOP TIER
+                        COLLECTION</p>
+                </div>
+                <div class="flex flex-col xl:flex-row items-end xl:items-center gap-4 w-full md:w-auto">
+                    <!-- CATEGORY FILTER BUTTONS -->
+                    <div class="flex items-center gap-2">
+                        <button onclick="filterCategory('all')" id="filter-btn-all"
+                            class="px-4 py-2 text-xs font-bold uppercase tracking-widest border border-[#b8860b] bg-[#b8860b] text-black rounded transition-all hover:shadow-[0_0_15px_rgba(184,134,11,0.4)]">
+                            ყველა
+                        </button>
+                        <button onclick="filterCategory('chalice')" id="filter-btn-chalice"
+                            class="px-4 py-2 text-xs font-bold uppercase tracking-widest border border-[#b8860b] text-[#b8860b] rounded transition-all hover:bg-[#b8860b] hover:text-black">
+                            თასები
+                        </button>
+                        <button onclick="filterCategory('tankard')" id="filter-btn-tankard"
+                            class="px-4 py-2 text-xs font-bold uppercase tracking-widest border border-[#b8860b] text-[#b8860b] rounded transition-all hover:bg-[#b8860b] hover:text-black">
+                            კათხები
+                        </button>
+                    </div>
+
+                    <div class="relative group">
+                        <input type="text" id="searchInput" placeholder="Search..."
+                            class="filter-input pl-10 w-full sm:w-64">
+                    </div>
+                    <div class="relative">
+                        <select id="sortSelect" class="filter-input w-full sm:w-48 pr-8 appearance-none">
+                            <option value="newest">Newest First</option>
+                            <option value="oldest">Oldest First</option>
+                            <option value="price_asc">Price: Low to High</option>
+                            <option value="price_desc">Price: High to Low</option>
+                            <option value="category">Category</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BENTO GLID -->
+            <div id="products-grid" class="bento-grid">
+                <!-- Items injected by JS -->
+            </div>
+
+            <div id="empty-state" class="hidden text-center py-20">
+                <p class="text-gray-500 text-xl font-light">No artifacts found matching your query.</p>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <section id="main-footer"
+            class="relative mt-24 py-12 w-full flex items-center justify-center border-t border-[#b8860b]/30">
+            <div class="relative z-10 text-center px-6">
+                <h2 class="text-2xl brand-font text-metal mb-4" data-i18n="footer_contact">დაგვიკავშირდით</h2>
+                <div class="flex justify-center gap-6 text-[#b8860b]">
+                    <a href="https://www.facebook.com/OtexGeo" target="_blank"
+                        class="hover:text-white transition-colors cursor-none">Facebook</a>
+                </div>
+                <p class="mt-4 text-gray-500 text-xs">© 2026 OTEX based in Georgia.</p>
+            </div>
+        </section>
+    </div>
+
+    <!-- MODAL -->
+    <div id="product-modal" class="modal-overlay" onclick="closeModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <button class="close-modal-btn" onclick="closeModal(event)">&times;</button>
+            <div class="modal-image-col">
+                <img id="modal-img" src=""
+                    class="max-h-[85%] w-auto object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)] modal-anim-left">
+            </div>
+            <div class="modal-info-col">
+                <div class="modal-anim-right">
+                    <span id="modal-cat"
+                        class="text-[#b8860b] text-xs font-bold uppercase tracking-[0.3em] mb-4 block">CATEGORY</span>
+                    <h2 id="modal-title"
+                        class="text-4xl md:text-5xl lg:text-6xl font-black text-[#e5e5e5] mb-6 brand-font leading-[0.9]">
+                        TITLE</h2>
+                    <p id="modal-desc"
+                        class="text-gray-400 text-sm md:text-base leading-relaxed mb-10 font-light max-w-md">Desc</p>
+                    <div class="mt-auto border-t border-gray-900 pt-6">
+                        <div class="mb-6">
+                            <span class="block text-gray-500 text-[10px] uppercase tracking-widest mb-1">PRICE</span>
+                            <span id="modal-price" class="text-4xl text-white font-bold brand-font">49 ₾</span>
+                        </div>
+
+                        <!-- NEW CTA SECTION -->
+                        <div class="space-y-4">
+                            <div>
+                                <p class="text-gray-500 text-xs mb-2 flex items-center gap-2">
+                                    <span class="text-[#b8860b]">●</span> <span data-i18n="contact_label">შესაკვეთად
+                                        დაგვიკავშირდით:</span>
+                                </p>
+                                <a href="tel:+995571130995"
+                                    class="block text-2xl md:text-3xl text-white font-bold hover:text-[#b8860b] transition-colors brand-font tracking-wide cursor-none">
+                                    +995 571 13 09 95
+                                </a>
+                            </div>
+
+                            <div class="flex items-center gap-4">
+                                <span class="h-[1px] bg-gray-800 flex-grow"></span>
+                                <span class="text-gray-600 text-[10px] uppercase tracking-widest"
+                                    data-i18n="or_write">ან მოგვწერეთ</span>
+                                <span class="h-[1px] bg-gray-800 flex-grow"></span>
+                            </div>
+
+                            <a href="https://www.facebook.com/OtexGeo" target="_blank"
+                                class="modal-btn flex items-center justify-center gap-3 group relative overflow-hidden">
+                                <svg class="w-5 h-5 relative z-10 transition-transform group-hover:scale-110"
+                                    fill="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                                </svg>
+                                <span class="relative z-10" data-i18n="fb_btn">FACEBOOK - მოგვწერეთ</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- CURSOR LOGIC ---
+        const dot = document.getElementById('cursor-dot');
+        const ring = document.getElementById('cursor-ring');
+
+        // GSAP quickTo for high performance
+        const moveDotX = gsap.quickTo(dot, "x", { duration: 0.1, ease: "power1.out" });
+        const moveDotY = gsap.quickTo(dot, "y", { duration: 0.1, ease: "power1.out" });
+        const moveRingX = gsap.quickTo(ring, "x", { duration: 0.3, ease: "power2.out" }); // Slower/Springy
+        const moveRingY = gsap.quickTo(ring, "y", { duration: 0.3, ease: "power2.out" });
+
+        window.addEventListener("mousemove", (e) => {
+            const { clientX, clientY } = e;
+            moveDotX(clientX);
+            moveDotY(clientY);
+            moveRingX(clientX);
+            moveRingY(clientY);
+        });
+
+        // Hover Effect Handlers
+        const hoverables = document.querySelectorAll('a, button, input, select, .bento-card');
+        const addHover = () => document.body.classList.add('hovering');
+        const removeHover = () => document.body.classList.remove('hovering');
+
+        // Use event delegation for dynamic items (Bento Cards)
+        document.body.addEventListener('mouseover', (e) => {
+            if (e.target.closest('a') || e.target.closest('button') || e.target.closest('input') || e.target.closest('select') || e.target.closest('.bento-card')) {
+                addHover();
+            }
+        });
+        document.body.addEventListener('mouseout', (e) => {
+            // We need a robust check to avoid flashing
+            if (e.target.closest('a') || e.target.closest('button') || e.target.closest('input') || e.target.closest('select') || e.target.closest('.bento-card')) {
+                removeHover();
+            }
+        });
+
+        // --- PRODUCT DATA & LOGIC ---
+        const products = [
+            { id: 1, title: 'Spartan I', category: 'chalice', price: 49, date: '2025-01-10', bg: true, description: 'The original masterpiece. High-grade polymer resin encasing a stainless steel core. Built for the gods.' },
+            { id: 2, title: 'Spartan II', category: 'chalice', price: 49, date: '2025-01-12', bg: false, description: 'Enhanced grip texture and a slightly darker hue for the stealth warrior.' },
+            { id: 3, title: 'Spartan III', category: 'chalice', price: 59, date: '2025-01-15', bg: false, description: 'Ceremonial edition with gold-leaf accents.' },
+            { id: 4, title: 'Spartan IV', category: 'chalice', price: 49, date: '2025-01-08', bg: true, description: 'Battle-worn finish used by the vanguard.' },
+            { id: 5, title: 'Spartan V', category: 'chalice', price: 59, date: '2025-01-20', bg: false, description: 'Heavy duty construction. Weighs twice as much as standard.' },
+            { id: 11, title: 'Viking I', category: 'tankard', price: 39, date: '2025-01-05', bg: true, description: 'Short and stout. Perfect for mead or strong coffee.' },
+            { id: 12, title: 'Viking II', category: 'tankard', price: 39, date: '2025-01-18', bg: false, description: 'Runes engraved along the rim for protection.' },
+            { id: 13, title: 'Viking III', category: 'tankard', price: 39, date: '2025-01-22', bg: true, description: 'Polished iron finish. Simple, brutal, effective.' },
+            { id: 14, title: 'Viking IV', category: 'tankard', price: 39, date: '2025-01-01', bg: false, description: 'The essentials. No nonsense.' },
+            { id: 15, title: 'Viking V', category: 'tankard', price: 39, date: '2025-01-03', bg: false, description: 'Another sturdy vessel for the collection.' }
+        ];
+
+        const grid = document.getElementById('products-grid');
+        const emptyState = document.getElementById('empty-state');
+        let currentProducts = [...products];
+
+        // Map UI categories to Folder names
+        const folderMap = {
+            'chalice': 'chalice', // Physical folder is 'chalice'
+            'tankard': 'dabali'   // Physical folder is 'dabali'
+        };
+
+        function renderGrid(items) {
+            grid.innerHTML = '';
+            if (items.length === 0) { emptyState.style.display = 'block'; return; }
+            else { emptyState.style.display = 'none'; }
+
+            items.forEach((item, index) => {
+                let spanClass = '';
+                if (item.bg) spanClass = 'col-span-2';
+                else if (index % 7 === 0) spanClass = 'col-span-tall';
+                else if (index % 4 === 0) spanClass = 'col-span-wide';
+                if (index === items.length - 1 && items.length % 2 !== 0) spanClass = 'col-span-wide md:col-span-2';
+
+                // Use folderMap to determine correct path
+                const folder = folderMap[item.category] || item.category;
+                const imgPath = `${folder}/${item.id % 5 || 1}.webp`;
+
+                const card = document.createElement('div');
+                card.className = `bento-card group ${spanClass} opacity-0 translate-y-4`;
+                card.onclick = () => openModal(item);
+
+                card.innerHTML = `
+                    <img src="${imgPath}" class="card-bg" alt="${item.title}" onerror="this.src='${folder}/${item.id % 5 || 1}.webp'">
+                    <div class="price-sticker">${item.price} ₾</div>
+                    <div class="card-content">
+                        <span class="text-xs font-bold text-[#b8860b] uppercase tracking-widest mb-1 block">${item.category}</span>
+                        <h3 class="text-xl md:text-2xl font-bold text-white brand-font leading-none mb-1 group-hover:text-[#b8860b] transition-colors">${item.title}</h3>
+                        <p class="text-[10px] text-gray-400 opacity-80">${item.date}</p>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+            gsap.to(".bento-card", { y: 0, opacity: 1, duration: 0.5, stagger: 0.05, ease: "power2.out" });
+        }
+
+        const searchInput = document.getElementById('searchInput');
+        const sortSelect = document.getElementById('sortSelect');
+        let selectedCategory = 'all';
+
+        function filterCategory(category) {
+            selectedCategory = category;
+
+            // Update Buttons Visual State
+            const buttons = {
+                'all': document.getElementById('filter-btn-all'),
+                'chalice': document.getElementById('filter-btn-chalice'),
+                'tankard': document.getElementById('filter-btn-tankard')
+            };
+
+            // Reset all
+            Object.values(buttons).forEach(btn => {
+                btn.className = "px-4 py-2 text-xs font-bold uppercase tracking-widest border border-[#b8860b] text-[#b8860b] rounded transition-all hover:bg-[#b8860b] hover:text-black";
+            });
+
+            // Activate selected
+            const activeBtn = buttons[category];
+            activeBtn.className = "px-4 py-2 text-xs font-bold uppercase tracking-widest border border-[#b8860b] bg-[#b8860b] text-black rounded transition-all hover:shadow-[0_0_15px_rgba(184,134,11,0.4)]";
+
+            filterAndSort();
+        }
+
+        function filterAndSort() {
+            const query = searchInput.value.toLowerCase();
+            const sortMode = sortSelect.value;
+            let filtered = products.filter(p => {
+                const matchSearch = p.title.toLowerCase().includes(query);
+                const matchCategory = selectedCategory === 'all' || p.category === selectedCategory;
+                return matchSearch && matchCategory;
+            });
+            filtered.sort((a, b) => {
+                if (sortMode === 'newest') return new Date(b.date) - new Date(a.date);
+                if (sortMode === 'oldest') return new Date(a.date) - new Date(b.date);
+                if (sortMode === 'price_asc') return a.price - b.price;
+                if (sortMode === 'price_desc') return b.price - a.price;
+                if (sortMode === 'category') return a.category.localeCompare(b.category);
+                return 0;
+            });
+            renderGrid(filtered);
+        }
+        searchInput.addEventListener('input', filterAndSort);
+        sortSelect.addEventListener('change', filterAndSort);
+
+        const modal = document.getElementById('product-modal');
+        function openModal(item) {
+            const folder = folderMap[item.category] || item.category;
+            const noBgPath = `${folder}/no_bg/${item.id % 5 || 1}.webp`;
+            const backupPath = `${folder}/${item.id % 5 || 1}.webp`;
+
+            const imgEl = document.getElementById('modal-img');
+            imgEl.src = noBgPath;
+            imgEl.onerror = () => { imgEl.src = backupPath; };
+
+            document.getElementById('modal-title').innerText = item.title;
+            document.getElementById('modal-cat').innerText = item.category;
+            document.getElementById('modal-desc').innerText = item.description;
+            document.getElementById('modal-price').innerText = item.price + " ₾";
+
+            modal.style.display = "flex";
+            gsap.fromTo(modal, { opacity: 0 }, { opacity: 1, duration: 0.3 });
+            gsap.fromTo(".modal-content", { opacity: 0, scale: 0.95 }, { opacity: 1, scale: 1, duration: 0.5, ease: "power3.out" });
+            gsap.fromTo(".modal-anim-left", { x: -50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, delay: 0.2, ease: "power2.out" });
+            gsap.fromTo(".modal-anim-right", { x: 50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, delay: 0.3, ease: "power2.out" });
+        }
+        function closeModal(e) {
+            if (e) e.preventDefault();
+            gsap.to(".modal-content", { scale: 0.95, opacity: 0, duration: 0.3 });
+            gsap.to(modal, { opacity: 0, duration: 0.3, onComplete: () => modal.style.display = 'none' });
+        }
+
+        // --- PARTICLE SYSTEM ---
+        const canvas = document.getElementById('particles-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let w, h;
+
+        function resizeCanvas() {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * w;
+                this.y = Math.random() * h;
+                this.size = Math.random() * 2;
+                this.speedY = Math.random() * 0.4 + 0.1;
+                this.speedX = (Math.random() - 0.5) * 0.2;
+                this.opacity = Math.random() * 0.5 + 0.2;
+                this.color = `rgba(184, 134, 11, ${this.opacity})`;
+            }
+            update() {
+                this.y -= this.speedY;
+                this.x += this.speedX;
+                if (this.y < 0) {
+                    this.y = h;
+                    this.x = Math.random() * w;
+                }
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            const count = window.innerWidth < 768 ? 20 : 60;
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, w, h);
+            particles.forEach(p => {
+                p.update();
+                if (p.x > -50 && p.x < w + 50 && p.y > -50 && p.y < h + 50) {
+                    p.draw();
+                }
+            });
+            requestAnimationFrame(animateParticles);
+        }
+
+        initParticles();
+        animateParticles();
+
+        let menuOpen = false;
+        function toggleMenu() {
+            const o = document.getElementById('menu-overlay'), l = document.querySelectorAll('.menu-link');
+            if (!menuOpen) { menuOpen = true; o.style.display = 'flex'; gsap.to(o, { opacity: 1 }); gsap.to(l, { y: 0, opacity: 1, stagger: 0.1, delay: 0.1 }); }
+            else { menuOpen = false; gsap.to(l, { y: 50, opacity: 0 }); gsap.to(o, { opacity: 0, delay: 0.2, onComplete: () => o.style.display = 'none' }); }
+        }
+
+        // Initialize Language from Storage
+        let cLang = localStorage.getItem('otex_lang') || 'ka';
+
+        // Apply immediately on load (No animation)
+        function applyLanguageImmediate() {
+            document.getElementById('lang-text').innerText = cLang === 'ka' ? 'ENG' : 'GEO';
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (tr[cLang][key]) {
+                    el.innerHTML = tr[cLang][key]; // innerHTML for styling tags
+                }
+            });
+        }
+
+        const tr = {
+            ka: { nav_home: "მთავარი", nav_history: "ჩვენს შესახებ", nav_craft: "პროდუქცია", nav_order: "კონტაქტი", shop_title: "შეიარაღება", shop_total: "კოლექცია", footer_contact: "დაგვიკავშირდით", buy_btn: "შეკვეთა", contact_label: "შესაკვეთად დაგვიკავშირდით", or_write: "ან მოგვწერეთ", fb_btn: "FACEBOOK - მოგვწერეთ" },
+            en: { nav_home: "HOME", nav_history: "ABOUT US", nav_craft: "PRODUCTS", nav_order: "CONTACT", shop_title: "THE ARMORY", shop_total: "COLLECTION", footer_contact: "CONTACT US", buy_btn: "ORDER NOW", contact_label: "Call to Order:", or_write: "Or Write Us:", fb_btn: "FACEBOOK - MESSAGE US" }
+        };
+
+        function toggleLanguageWithTransition() {
+            const wrap = document.getElementById('page-content-wrapper');
+            gsap.to(wrap, {
+                opacity: 0, filter: "blur(5px)", duration: 0.3, onComplete: () => {
+                    // Update & Save
+                    cLang = cLang === 'ka' ? 'en' : 'ka';
+                    localStorage.setItem('otex_lang', cLang);
+
+                    applyLanguageImmediate();
+
+                    gsap.to(wrap, { opacity: 1, filter: "blur(0px)", duration: 0.3 });
+                }
+            });
+        }
+
+        applyLanguageImmediate(); // Run immediate
+        renderGrid(products);
+    </script>
+</body>
+
+</html>
