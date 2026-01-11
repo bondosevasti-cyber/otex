@@ -406,6 +406,34 @@
             background: #b8860b;
             transform: scale(1.2);
         }
+
+        /* LIGHTBOX */
+        #lightbox {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: black;
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            cursor: zoom-out;
+        }
+
+        #lightbox img {
+            max-width: 100vw;
+            max-height: 100vh;
+            object-fit: contain;
+        }
+
+        #lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 3rem;
+            cursor: pointer;
+            z-index: 2001;
+        }
     </style>
 </head>
 
@@ -459,30 +487,21 @@
                     <div class="flex items-center gap-2">
                         <button onclick="filterCategory('all')" id="filter-btn-all"
                             class="px-4 py-2 text-xs font-bold uppercase tracking-widest border border-[#b8860b] bg-[#b8860b] text-black rounded transition-all hover:shadow-[0_0_15px_rgba(184,134,11,0.4)]">
-                            ყველა
+                            <span data-i18n="cat_all">ყველა</span>
                         </button>
                         <button onclick="filterCategory('chalice')" id="filter-btn-chalice"
                             class="px-4 py-2 text-xs font-bold uppercase tracking-widest border border-[#b8860b] text-[#b8860b] rounded transition-all hover:bg-[#b8860b] hover:text-black">
-                            თასები
+                            <span data-i18n="cat_chalice">თასები</span>
                         </button>
                         <button onclick="filterCategory('tankard')" id="filter-btn-tankard"
                             class="px-4 py-2 text-xs font-bold uppercase tracking-widest border border-[#b8860b] text-[#b8860b] rounded transition-all hover:bg-[#b8860b] hover:text-black">
-                            კათხები
+                            <span data-i18n="cat_tankard">კათხები</span>
                         </button>
                     </div>
 
                     <div class="relative group">
                         <input type="text" id="searchInput" placeholder="Search..."
                             class="filter-input pl-10 w-full sm:w-64">
-                    </div>
-                    <div class="relative">
-                        <select id="sortSelect" class="filter-input w-full sm:w-48 pr-8 appearance-none">
-                            <option value="newest">Newest First</option>
-                            <option value="oldest">Oldest First</option>
-                            <option value="price_asc">Price: Low to High</option>
-                            <option value="price_desc">Price: High to Low</option>
-                            <option value="category">Category</option>
-                        </select>
                     </div>
                 </div>
             </div>
@@ -503,7 +522,7 @@
             <div class="relative z-10 text-center px-6">
                 <h2 class="text-2xl brand-font text-metal mb-4" data-i18n="footer_contact">დაგვიკავშირდით</h2>
                 <div class="flex justify-center gap-6 text-[#b8860b]">
-                    <a href="https://www.facebook.com/OtexGeo" target="_blank"
+                    <a href="https://www.facebook.com/OtexGeo/" target="_blank"
                         class="hover:text-white transition-colors">Facebook</a>
                 </div>
                 <p class="mt-4 text-gray-500 text-xs">© 2026 OTEX based in Georgia.</p>
@@ -517,8 +536,8 @@
             <button class="close-modal-btn" onclick="closeModal(event)">&times;</button>
             <div class="modal-image-col relative group" id="modal-img-container">
                 <!-- Image injected here via JS -->
-                <img id="modal-img" src=""
-                    class="max-h-[85%] w-auto object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)] modal-anim-left transition-opacity duration-300">
+                <img id="modal-img" src="" onclick="openLightbox()"
+                    class="max-h-[85%] w-auto object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)] modal-anim-left transition-opacity duration-300 cursor-zoom-in">
 
                 <!-- Slider Controls (Hidden by default) -->
                 <button id="prevBtn" class="slider-btn prev hidden" onclick="prevSlide(event)">&#10094;</button>
@@ -561,7 +580,7 @@
                                 <span class="h-[1px] bg-gray-800 flex-grow"></span>
                             </div>
 
-                            <a href="https://www.facebook.com/OtexGeo" target="_blank"
+                            <a href="https://www.facebook.com/OtexGeo/" target="_blank"
                                 class="modal-btn flex items-center justify-center gap-3 group relative overflow-hidden">
                                 <svg class="w-5 h-5 relative z-10 transition-transform group-hover:scale-110"
                                     fill="currentColor" viewBox="0 0 24 24">
@@ -577,12 +596,39 @@
         </div>
     </div>
 
+    <!-- LIGHTBOX -->
+    <div id="lightbox" onclick="closeLightbox()">
+        <span id="lightbox-close">&times;</span>
+        <img id="lightbox-img" src="" onclick="event.stopPropagation()">
+    </div>
+
     <script>
-        // --- 1. CRITICAL UI FUNCTIONS (Moved to top) ---
+        // --- 1. CONFIG & TRANSLATIONS ---
         const tr = {
-            ka: { nav_home: "მთავარი", nav_history: "ჩვენს შესახებ", nav_craft: "პროდუქცია", nav_order: "კონტაქტი", shop_title: "შეიარაღება", shop_total: "კოლექცია", footer_contact: "დაგვიკავშირდით", buy_btn: "შეკვეთა", contact_label: "შესაკვეთად დაგვიკავშირდით", or_write: "ან მოგვწერეთ", fb_btn: "FACEBOOK - მოგვწერეთ" },
-            en: { nav_home: "HOME", nav_history: "ABOUT US", nav_craft: "PRODUCTS", nav_order: "CONTACT", shop_title: "THE ARMORY", shop_total: "COLLECTION", footer_contact: "CONTACT US", buy_btn: "ORDER NOW", contact_label: "Call to Order:", or_write: "Or Write Us:", fb_btn: "FACEBOOK - MESSAGE US" }
+            ka: {
+                nav_home: "მთავარი", nav_history: "ჩვენს შესახებ", nav_craft: "პროდუქცია", nav_order: "კონტაქტი",
+                shop_title: "შეიარაღება", shop_total: "კოლექცია", footer_contact: "დაგვიკავშირდით",
+                buy_btn: "შეკვეთა", contact_label: "შესაკვეთად დაგვიკავშირდით", or_write: "ან მოგვწერეთ",
+                fb_btn: "FACEBOOK - მოგვწერეთ", cat_all: "ყველა", cat_chalice: "თასები", cat_tankard: "კათხები"
+            },
+            en: {
+                nav_home: "HOME", nav_history: "ABOUT US", nav_craft: "PRODUCTS", nav_order: "CONTACT",
+                shop_title: "THE ARMORY", shop_total: "COLLECTION", footer_contact: "CONTACT US",
+                buy_btn: "ORDER NOW", contact_label: "Call to Order:", or_write: "Or Write Us:",
+                fb_btn: "FACEBOOK - MESSAGE US", cat_all: "ALL", cat_chalice: "CHALICES", cat_tankard: "TANKARDS"
+            }
         };
+
+        // Category DB to Display Mapping
+        function getCategoryLabel(cat) {
+            if (!cat) return "";
+            const lower = cat.toLowerCase();
+            const lang = cLang === 'ka' ? 'ka' : 'en';
+
+            if (lower === 'chalice') return lang === 'ka' ? "თასი" : "CHALICE";
+            if (lower === 'tankard') return lang === 'ka' ? "კათხა" : "TANKARD";
+            return cat.toUpperCase();
+        }
 
         let menuOpen = false;
         function toggleMenu() {
@@ -597,7 +643,6 @@
             }
         }
 
-        // Initialize Language
         let cLang = localStorage.getItem('otex_lang') || 'ka';
 
         function applyLanguageImmediate() {
@@ -610,11 +655,13 @@
                     el.innerHTML = tr[cLang][key];
                 }
             });
+
+            // Re-render grid to update product cards if loaded
+            if (currentProducts.length > 0) renderGrid(currentProducts);
         }
 
         function toggleLanguageWithTransition() {
             const wrap = document.getElementById('page-content-wrapper');
-            // Check if gsap is loaded, fallback if not
             if (typeof gsap !== 'undefined') {
                 gsap.to(wrap, {
                     opacity: 0, filter: "blur(5px)", duration: 0.3, onComplete: () => {
@@ -632,8 +679,7 @@
         }
         applyLanguageImmediate();
 
-
-        // --- 2. CONFIGURATION & DATA ---
+        // --- 2. SUPABASE ---
         const SUPABASE_URL = 'https://ozlvczhlnfbwjgnsfwnf.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96bHZjemhsbmZid2pnbnNmd25mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgxMTU5OTgsImV4cCI6MjA4MzY5MTk5OH0.vKQ8q3rRFYHg-8Qj7UTjxPVivvaNHS2O3cSnxqUN02E';
 
@@ -644,9 +690,7 @@
             } else {
                 console.error('Supabase library not loaded');
             }
-        } catch (e) {
-            console.error("Supabase init failed:", e);
-        }
+        } catch (e) { console.error("Supabase init failed:", e); }
 
         let products = [];
         const grid = document.getElementById('products-grid');
@@ -662,13 +706,7 @@
                     .order('id', { ascending: false });
 
                 if (error) throw error;
-
-                products = data.map(item => ({
-                    ...item,
-                    date: item.created_at ? item.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
-                    bg: false
-                }));
-
+                products = data;
                 currentProducts = [...products];
                 filterAndSort();
             } catch (err) {
@@ -677,7 +715,7 @@
             }
         }
 
-        // --- 3. UI HELPERS & EVENTS ---
+        // --- 3. UI HELPERS ---
         const folderMap = { 'chalice': 'chalice', 'tankard': 'dabali' };
 
         function renderGrid(items) {
@@ -692,13 +730,13 @@
 
             items.forEach((item, index) => {
                 let spanClass = '';
-                if (item.bg) spanClass = 'col-span-2';
-                else if (index % 7 === 0) spanClass = 'col-span-tall';
+                if (index % 7 === 0) spanClass = 'col-span-tall';
                 else if (index % 4 === 0) spanClass = 'col-span-wide';
                 if (index === items.length - 1 && items.length % 2 !== 0) spanClass = 'col-span-wide md:col-span-2';
 
                 const folder = folderMap[item.category] || item.category;
                 const imgPath = `${folder}/${item.id % 5 || 1}.webp`;
+                const displayCategory = getCategoryLabel(item.category);
 
                 const card = document.createElement('div');
                 card.className = `bento-card group ${spanClass} opacity-0 translate-y-4`;
@@ -708,7 +746,7 @@
                     <img src="${item.image_url || imgPath}" class="card-bg" alt="${item.title}" onerror="this.src='${imgPath}'">
                     <div class="price-sticker">${item.price}</div>
                     <div class="card-content">
-                        <span class="text-xs font-bold text-[#b8860b] uppercase tracking-widest mb-1 block">${item.category}</span>
+                        <span class="text-xs font-bold text-[#b8860b] uppercase tracking-widest mb-1 block">${displayCategory}</span>
                         <h3 class="text-xl md:text-2xl font-bold text-white brand-font leading-none mb-2 group-hover:text-[#b8860b] transition-colors">${item.title}</h3>
                         <div class="mt-2 border-t border-gray-800 pt-2">
                              <a href="tel:+995 571 13 09 95" class="text-[10px] md:text-xs text-gray-400 hover:text-[#b8860b] transition-colors font-bold tracking-wider block">
@@ -729,15 +767,14 @@
         }
 
         const searchInput = document.getElementById('searchInput');
-        const sortSelect = document.getElementById('sortSelect');
         let selectedCategory = 'all';
 
         function filterCategory(category) {
             selectedCategory = category;
             const buttons = {
                 'all': document.getElementById('filter-btn-all'),
-                'თასი': document.getElementById('filter-btn-chalice'),
-                'კათხა': document.getElementById('filter-btn-tankard')
+                'chalice': document.getElementById('filter-btn-chalice'),
+                'tankard': document.getElementById('filter-btn-tankard')
             };
 
             Object.values(buttons).forEach(btn => {
@@ -752,7 +789,6 @@
 
         function filterAndSort() {
             const query = searchInput ? searchInput.value.toLowerCase() : '';
-            const sortMode = sortSelect ? sortSelect.value : 'newest';
 
             let filtered = products.filter(p => {
                 const matchSearch = p.title.toLowerCase().includes(query);
@@ -760,21 +796,15 @@
                 return matchSearch && matchCategory;
             });
 
-            filtered.sort((a, b) => {
-                if (sortMode === 'newest') return new Date(b.date) - new Date(a.date);
-                if (sortMode === 'oldest') return new Date(a.date) - new Date(b.date);
-                if (sortMode === 'price_asc') return a.price_val - b.price_val;
-                if (sortMode === 'price_desc') return b.price_val - a.price_val;
-                if (sortMode === 'category') return a.category.localeCompare(b.category);
-                return 0;
-            });
+            // Sort by newest always for now, or add back sort select if needed
+            filtered.sort((a, b) => new Date(b.created_at || new Date()) - new Date(a.created_at || new Date()));
+
             renderGrid(filtered);
         }
 
         if (searchInput) searchInput.addEventListener('input', filterAndSort);
-        if (sortSelect) sortSelect.addEventListener('change', filterAndSort);
 
-        // --- SLIDER LOGIC ---
+        // --- SLIDER & MODAL ---
         const modal = document.getElementById('product-modal');
         let currentImages = [];
         let currentSlideIndex = 0;
@@ -782,39 +812,31 @@
         function openModal(item) {
             if (!modal) return;
 
-            // Populate Text Info
             document.getElementById('modal-title').innerText = item.title;
-            document.getElementById('modal-cat').innerText = item.category;
+            document.getElementById('modal-cat').innerText = getCategoryLabel(item.category);
             document.getElementById('modal-desc').innerText = item.description;
             document.getElementById('modal-price').innerText = item.price;
 
-            // Image Logic
-            const imgEl = document.getElementById('modal-img');
-            const prevBtn = document.getElementById('prevBtn');
-            const nextBtn = document.getElementById('nextBtn');
-            const dotsContainer = document.getElementById('dots-container');
-
-            // Decide if gallery or single image
-            if (item.gallery_urls && item.gallery_urls.length > 0) {
+            // Slider Data
+            // If gallery_urls exists and has multiple images, use it. Otherwise single.
+            if (item.gallery_urls && Array.isArray(item.gallery_urls) && item.gallery_urls.length > 0) {
                 currentImages = item.gallery_urls;
             } else {
-                currentImages = [item.image_url || `${item.category}/${item.id % 5 || 1}.webp`];
+                // Fallback to single image logic
+                const folder = folderMap[item.category] || item.category;
+                const path = item.image_url || `${folder}/${item.id % 5 || 1}.webp`;
+                currentImages = [path];
             }
 
             currentSlideIndex = 0;
-            updateSlide(false); // Initial Show
+            updateSlide(false);
 
-            // Show/Hide Controls based on count
-            if (currentImages.length > 1) {
-                prevBtn.classList.remove('hidden');
-                nextBtn.classList.remove('hidden');
-                dotsContainer.classList.remove('hidden');
-                renderDots();
-            } else {
-                prevBtn.classList.add('hidden');
-                nextBtn.classList.add('hidden');
-                dotsContainer.classList.add('hidden');
-            }
+            // Controls Visibility
+            const multi = currentImages.length > 1;
+            document.getElementById('prevBtn').classList.toggle('hidden', !multi);
+            document.getElementById('nextBtn').classList.toggle('hidden', !multi);
+            document.getElementById('dots-container').classList.toggle('hidden', !multi);
+            if (multi) renderDots();
 
             modal.style.display = "flex";
             if (typeof gsap !== 'undefined') {
@@ -822,20 +844,17 @@
                 gsap.fromTo(".modal-content", { opacity: 0, scale: 0.95 }, { opacity: 1, scale: 1, duration: 0.5, ease: "power3.out" });
                 gsap.fromTo(".modal-anim-left", { x: -50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, delay: 0.2, ease: "power2.out" });
                 gsap.fromTo(".modal-anim-right", { x: 50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, delay: 0.3, ease: "power2.out" });
-            } else {
-                modal.style.opacity = 1;
-            }
+            } else { modal.style.opacity = 1; }
         }
 
         function updateSlide(animate = true) {
             const imgEl = document.getElementById('modal-img');
             if (animate) imgEl.style.opacity = 0;
-
             setTimeout(() => {
                 imgEl.src = currentImages[currentSlideIndex];
                 if (animate) imgEl.style.opacity = 1;
                 updateDots();
-            }, animate ? 300 : 0);
+            }, animate ? 200 : 0);
         }
 
         function nextSlide(e) {
@@ -874,6 +893,20 @@
             } else {
                 modal.style.display = 'none';
             }
+        }
+
+        // --- LIGHTBOX ---
+        const lightbox = document.getElementById('lightbox');
+        const lbImg = document.getElementById('lightbox-img');
+
+        function openLightbox() {
+            if (!lightbox || !lbImg) return;
+            lbImg.src = currentImages[currentSlideIndex];
+            lightbox.style.display = 'flex';
+        }
+
+        function closeLightbox() {
+            if (lightbox) lightbox.style.display = 'none';
         }
 
         // --- 4. PARTICLES ---
