@@ -489,13 +489,13 @@
                             class="px-4 py-2 text-xs font-bold uppercase tracking-widest border border-[#b8860b] bg-[#b8860b] text-black rounded transition-all hover:shadow-[0_0_15px_rgba(184,134,11,0.4)]">
                             <span data-i18n="cat_all">ყველა</span>
                         </button>
-                        <button onclick="filterCategory('Cup')" id="filter-btn-Cup"
+                        <button onclick="filterCategory('CUPS')" id="filter-btn-CUPS"
                             class="px-4 py-2 text-xs font-bold uppercase tracking-widest border border-[#b8860b] text-[#b8860b] rounded transition-all hover:bg-[#b8860b] hover:text-black">
-                            <span data-i18n="cat_chalice">თასები</span>
+                            <span data-i18n="cat_CUPS">თასები</span>
                         </button>
-                        <button onclick="filterCategory('tankard')" id="filter-btn-tankard"
+                        <button onclick="filterCategory('MUGS')" id="filter-btn-MUGS"
                             class="px-4 py-2 text-xs font-bold uppercase tracking-widest border border-[#b8860b] text-[#b8860b] rounded transition-all hover:bg-[#b8860b] hover:text-black">
-                            <span data-i18n="cat_tankard">კათხები</span>
+                            <span data-i18n="cat_MUGS">კათხები</span>
                         </button>
                     </div>
 
@@ -609,13 +609,13 @@
                 nav_home: "მთავარი", nav_history: "ჩვენს შესახებ", nav_craft: "პროდუქცია", nav_order: "კონტაქტი",
                 shop_title: "შეიარაღება", shop_total: "კოლექცია", footer_contact: "დაგვიკავშირდით",
                 buy_btn: "შეკვეთა", contact_label: "შესაკვეთად დაგვიკავშირდით", or_write: "ან მოგვწერეთ",
-                fb_btn: "FACEBOOK - მოგვწერეთ", cat_all: "ყველა", cat_chalice: "თასები", cat_tankard: "კათხები"
+                fb_btn: "FACEBOOK - მოგვწერეთ", cat_all: "ყველა", cat_CUPS: "თასები", cat_MUGS: "კათხები"
             },
             en: {
                 nav_home: "HOME", nav_history: "ABOUT US", nav_craft: "PRODUCTS", nav_order: "CONTACT",
                 shop_title: "THE ARMORY", shop_total: "COLLECTION", footer_contact: "CONTACT US",
                 buy_btn: "ORDER NOW", contact_label: "Call to Order:", or_write: "Or Write Us:",
-                fb_btn: "FACEBOOK - MESSAGE US", cat_all: "ALL", cat_chalice: "CUPS", cat_tankard: "MUGS"
+                fb_btn: "FACEBOOK - MESSAGE US", cat_all: "ALL", cat_CUPS: "CUPS", cat_MUGS: "MUGS"
             }
         };
 
@@ -655,11 +655,11 @@
         // Category DB to Display Mapping
         function getCategoryLabel(cat) {
             if (!cat) return "";
-            const lower = cat.toLowerCase();
+            const upper = cat.toUpperCase();
             const lang = cLang === 'ka' ? 'ka' : 'en';
 
-            if (lower === 'chalice') return lang === 'ka' ? "თასი" : "CUP";
-            if (lower === 'tankard') return lang === 'ka' ? "კათხა" : "MUG";
+            if (upper === 'CUPS') return lang === 'ka' ? "თასი" : "CUP";
+            if (upper === 'MUGS') return lang === 'ka' ? "კათხა" : "MUG";
             return cat.toUpperCase();
         }
 
@@ -730,7 +730,7 @@
         }
 
         // --- 5. RENDER LOGIC ---
-        const folderMap = { 'chalice': 'chalice', 'tankard': 'dabali' };
+        const folderMap = { 'CUPS': 'chalice', 'MUGS': 'dabali' };
 
         function renderGrid(items) {
             if (!grid) return;
@@ -785,8 +785,8 @@
             selectedCategory = category;
             const buttons = {
                 'all': document.getElementById('filter-btn-all'),
-                'chalice': document.getElementById('filter-btn-chalice'),
-                'tankard': document.getElementById('filter-btn-tankard')
+                'CUPS': document.getElementById('filter-btn-CUPS'),
+                'MUGS': document.getElementById('filter-btn-MUGS')
             };
 
             Object.values(buttons).forEach(btn => {
