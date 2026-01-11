@@ -139,8 +139,8 @@
                     <div>
                         <label data-key="label_category">Category</label>
                         <select id="category" class="input-field" required>
-                            <option value="chalice" id="opt_chalice">თასი</option>
-                            <option value="tankard" id="opt_tankard">კათხა</option>
+                            <option value="CUPS" id="opt_chalice">თასი</option>
+                            <option value="MUGS" id="opt_tankard">კათხა</option>
                         </select>
                     </div>
                 </div>
@@ -157,18 +157,17 @@
                 <div><label data-key="label_desc">Description</label><textarea id="description" rows="4"
                         class="input-field" required></textarea></div>
                 <div>
-                    <label data-key="label_img">Product Images</label>
-                    <div
-                        class="relative border border-dashed border-[#333] hover:border-[#b8860b] transition-colors p-8 text-center rounded bg-[#0a0a0a]">
-                        <!-- Changed to Multiple -->
-                        <input type="file" id="imageFile" accept="image/*" multiple
-                            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" required>
-                        <p class="text-gray-500 pointer-events-none" id="fileName" data-key="label_drag">Click or Drag
-                            images here</p>
+                    <label data-key="label_img">Product Images (Max 10)</label>
+                    <div id="uploadGrid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 mt-2">
+                        <!-- Add Button -->
+                        <div id="addFileBtn" onclick="document.getElementById('imageFile').click()"
+                            class="aspect-square border-2 border-dashed border-[#333] hover:border-[#b8860b] rounded-lg cursor-pointer flex items-center justify-center transition-colors group">
+                            <span class="text-4xl text-[#333] group-hover:text-[#b8860b] transition-colors">+</span>
+                        </div>
                     </div>
-                    <!-- Image Preview Container -->
-                    <div id="previewContainer"
-                        class="grid grid-cols-4 gap-2 mt-4 max-h-40 overflow-y-auto preview-grid"></div>
+                    <!-- Hidden Input -->
+                    <input type="file" id="imageFile" accept="image/*" multiple class="hidden">
+                    <!-- Old preview container removed -->
                 </div>
                 <button type="submit" id="submitBtn" class="btn-gold mt-4" data-key="btn_add">Add Product</button>
             </form>
@@ -233,33 +232,68 @@
         toggleLang();
 
         // --- PREVIEW LOGIC ---
+        // GLOBAL STATE FOR FILES
+        let selectedFiles = [];
+
+        // --- PREVIEW & FILE LOGIC ---
         const fileInput = document.getElementById('imageFile');
-        const fileNameDisplay = document.getElementById('fileName');
-        const previewContainer = document.getElementById('previewContainer');
+        const uploadGrid = document.getElementById('uploadGrid');
+        const addBtn = document.getElementById('addFileBtn');
 
         fileInput.addEventListener('change', (e) => {
-            const files = e.target.files;
-            previewContainer.innerHTML = ''; // Clear previous
+            const newFiles = Array.from(e.target.files);
 
-            if (files.length > 0) {
-                fileNameDisplay.textContent = `${files.length} Files Selected`;
-                fileNameDisplay.classList.add('text-[#b8860b]');
+            newFiles.forEach(file => {
+                // Prevent duplicates by name and size check
+                const exists = selectedFiles.some(f => f.name === file.name && f.size === file.size);
+                if (!exists && selectedFiles.length < 10) {
+                    selectedFiles.push(file);
+                }
+            });
 
-                Array.from(files).forEach(file => {
-                    const reader = new FileReader();
-                    reader.onload = (ev) => {
-                        const img = document.createElement('img');
-                        img.src = ev.target.result;
-                        img.className = 'w-full h-20 object-cover rounded border border-[#b8860b] shadow-md';
-                        previewContainer.appendChild(img);
-                    };
-                    reader.readAsDataURL(file);
-                });
-            } else {
-                fileNameDisplay.textContent = translations[currentLang].label_drag;
-                fileNameDisplay.classList.remove('text-[#b8860b]');
-            }
+            renderPreviews();
+            // Reset input so same file can be selected again if removed
+            fileInput.value = '';
         });
+
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            renderPreviews();
+        }
+
+        function renderPreviews() {
+            // Clear Grid but keep Add Button (we'll re-append it)
+            uploadGrid.innerHTML = '';
+
+            // Render Files
+            selectedFiles.forEach((file, index) => {
+                const reader = new FileReader();
+                const div = document.createElement('div');
+                div.className = 'relative aspect-square rounded-lg overflow-hidden border border-[#333] group';
+
+                div.innerHTML = `
+                    <div class="absolute inset-0 bg-gray-900 animate-pulse"></div> <!-- Skeleton -->
+                    <button type="button" onclick="removeFile(${index})" class="absolute top-1 right-1 bg-red-600/80 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs z-10 transition-colors">&times;</button>
+                `;
+
+                reader.onload = (e) => {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'absolute inset-0 w-full h-full object-cover transition-transform group-hover:scale-110';
+                    div.appendChild(img);
+                    // Remove skeleton loader
+                    div.querySelector('.bg-gray-900')?.remove();
+                };
+                reader.readAsDataURL(file);
+
+                uploadGrid.appendChild(div);
+            });
+
+            // Append Add Button if limit not reached
+            if (selectedFiles.length < 10) {
+                uploadGrid.appendChild(addBtn);
+            }
+        }
 
         // --- UPLOAD LOGIC ---
         document.getElementById('uploadForm').addEventListener('submit', async (e) => {
@@ -272,8 +306,7 @@
                 const category = document.getElementById('category').value;
                 const priceVal = document.getElementById('priceVal').value;
                 const description = document.getElementById('description').value;
-                const files = fileInput.files;
-
+                const files = selectedFiles; // Use global state
                 if (files.length === 0) throw new Error("Please select at least one image.");
 
                 const priceDisplay = `${priceVal} ₾`;
@@ -286,7 +319,12 @@
                     const file = files[i];
                     const fileExt = file.name.split('.').pop();
                     const fileName = `${Date.now()}_${i}.${fileExt}`;
-                    const filePath = `${category}/${fileName}`;
+
+                    // FOLDER MAPPING: Map new categories to old folders
+                    // 'CUPS' -> 'chalice' folder
+                    // 'MUGS' -> 'dabali' folder
+                    const folderName = category === 'CUPS' ? 'chalice' : 'dabali';
+                    const filePath = `${folderName}/${fileName}`;
 
                     const { error: uploadError } = await supabaseClient.storage.from('product-images').upload(filePath, file);
                     if (uploadError) throw uploadError;
@@ -312,8 +350,9 @@
 
                 alert('Product Added Successfully!');
                 document.getElementById('uploadForm').reset();
-                previewContainer.innerHTML = '';
-                fileNameDisplay.innerText = translations[currentLang].label_drag;
+                selectedFiles = []; // Reset global state
+                renderPreviews(); // Re-render grid (to show just the add button)
+                // fileNameDisplay removed since it's no longer used
 
             } catch (err) {
                 console.error(err);
