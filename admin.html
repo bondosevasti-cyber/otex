@@ -267,7 +267,8 @@
 
             // --- PREVIEW LOGIC ---
             // GLOBAL STATE FOR FILES
-            let selectedFiles = [];
+            let selectedFiles = []; // New files (File objects)
+            let keptExistingImages = []; // Existing URLs (Strings)
 
             // --- PREVIEW & FILE LOGIC ---
             const fileInput = document.getElementById('imageFile');
@@ -276,61 +277,74 @@
 
             fileInput.addEventListener('change', (e) => {
                 const newFiles = Array.from(e.target.files);
+                const totalCurrent = keptExistingImages.length + selectedFiles.length;
 
                 newFiles.forEach(file => {
                     // Prevent duplicates by name and size check
                     const exists = selectedFiles.some(f => f.name === file.name && f.size === file.size);
-                    if (!exists && selectedFiles.length < 10) {
+                    if (!exists && (keptExistingImages.length + selectedFiles.length) < 10) {
                         selectedFiles.push(file);
                     }
                 });
 
                 renderPreviews();
-                // Reset input so same file can be selected again if removed
                 fileInput.value = '';
             });
 
-            function removeFile(index) {
+            function removeNewFile(index) {
                 selectedFiles.splice(index, 1);
                 renderPreviews();
             }
 
+            function removeExistingFile(index) {
+                keptExistingImages.splice(index, 1);
+                renderPreviews();
+            }
+
             function renderPreviews() {
-                // Clear Grid but keep Add Button (we'll re-append it)
                 uploadGrid.innerHTML = '';
 
-                // Render Files
+                // 1. Render Existing Images
+                keptExistingImages.forEach((url, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'relative aspect-square rounded-lg overflow-hidden border border-[#b8860b] group';
+                    div.innerHTML = `
+                         <img src="${url}" class="absolute inset-0 w-full h-full object-cover">
+                         <button type="button" onclick="removeExistingFile(${index})" class="absolute top-1 right-1 bg-red-600/80 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs z-10 transition-colors">&times;</button>
+                    `;
+                    uploadGrid.appendChild(div);
+                });
+
+                // 2. Render New Files
                 selectedFiles.forEach((file, index) => {
                     const reader = new FileReader();
                     const div = document.createElement('div');
                     div.className = 'relative aspect-square rounded-lg overflow-hidden border border-[#333] group';
 
                     div.innerHTML = `
-                    <div class="absolute inset-0 bg-gray-900 animate-pulse"></div> <!-- Skeleton -->
-                    <button type="button" onclick="removeFile(${index})" class="absolute top-1 right-1 bg-red-600/80 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs z-10 transition-colors">&times;</button>
-                `;
+                        <div class="absolute inset-0 bg-gray-900 animate-pulse"></div>
+                        <button type="button" onclick="removeNewFile(${index})" class="absolute top-1 right-1 bg-red-600/80 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs z-10 transition-colors">&times;</button>
+                    `;
 
                     reader.onload = (e) => {
                         const img = document.createElement('img');
                         img.src = e.target.result;
                         img.className = 'absolute inset-0 w-full h-full object-cover transition-transform group-hover:scale-110';
                         div.appendChild(img);
-                        // Remove skeleton loader
                         div.querySelector('.bg-gray-900')?.remove();
                     };
                     reader.readAsDataURL(file);
-
                     uploadGrid.appendChild(div);
                 });
 
-                // Append Add Button if limit not reached
-                if (selectedFiles.length < 10) {
+                // 3. Append Add Button if limit not reached
+                if ((keptExistingImages.length + selectedFiles.length) < 10) {
                     uploadGrid.appendChild(addBtn);
                 }
             }
 
             // --- TAB & UI LOGIC ---
-            let editingProductId = null; // If null, we are adding. If set, we are updating.
+            let editingProductId = null;
 
             function switchTab(tab) {
                 const addSec = document.getElementById('addSection');
@@ -381,15 +395,15 @@
                     const tr = document.createElement('tr');
                     tr.className = "border-b border-[#333] hover:bg-[#111] transition-colors";
                     tr.innerHTML = `
-                    <td class="py-3"><img src="${p.image_url}" class="w-10 h-10 object-cover rounded border border-[#333]"></td>
-                    <td class="py-3 font-bold text-white">${p.title}</td>
-                    <td class="py-3 text-[#b8860b]">${p.price}</td>
-                    <td class="py-3 text-xs uppercase tracking-wide">${p.category}</td>
-                    <td class="py-3 text-right">
-                        <button onclick="editProduct(${p.id})" class="text-gray-400 hover:text-white mr-3 transition-colors">✏️</button>
-                        <button onclick="deleteProduct(${p.id})" class="text-red-500 hover:text-red-400 transition-colors">🗑️</button>
-                    </td>
-                `;
+                        <td class="py-3"><img src="${p.image_url}" class="w-10 h-10 object-cover rounded border border-[#333]"></td>
+                        <td class="py-3 font-bold text-white">${p.title}</td>
+                        <td class="py-3 text-[#b8860b]">${p.price}</td>
+                        <td class="py-3 text-xs uppercase tracking-wide">${p.category}</td>
+                        <td class="py-3 text-right">
+                            <button onclick="editProduct(${p.id})" class="text-gray-400 hover:text-white mr-3 transition-colors">✏️</button>
+                            <button onclick="deleteProduct(${p.id})" class="text-red-500 hover:text-red-400 transition-colors">🗑️</button>
+                        </td>
+                    `;
                     tbody.appendChild(tr);
                 });
             }
@@ -406,7 +420,7 @@
                 if (error) {
                     alert("Error deleting product: " + error.message);
                 } else {
-                    fetchProductsForAdmin(); // Refresh table
+                    fetchProductsForAdmin();
                 }
             }
 
@@ -439,10 +453,17 @@
                 document.getElementById('formTitle').textContent = `Editing: ${data.title}`;
                 document.getElementById('formTitle').classList.remove('hidden');
 
-                // Reset files (update handles keeping old image if no new files)
-                selectedFiles = [];
-                renderPreviews();
+                // Populate Images
+                selectedFiles = []; // Reset new files
+                if (data.gallery_urls && Array.isArray(data.gallery_urls)) {
+                    keptExistingImages = [...data.gallery_urls];
+                } else if (data.image_url) {
+                    keptExistingImages = [data.image_url];
+                } else {
+                    keptExistingImages = [];
+                }
 
+                renderPreviews();
                 switchTab('add');
             }
 
@@ -454,6 +475,7 @@
                 document.getElementById('cancelEditBtn').classList.add('hidden');
                 document.getElementById('formTitle').classList.add('hidden');
                 selectedFiles = [];
+                keptExistingImages = [];
                 renderPreviews();
             }
 
@@ -470,19 +492,19 @@
                     const category = document.getElementById('category').value;
                     const priceVal = document.getElementById('priceVal').value;
                     const description = document.getElementById('description').value;
-                    const files = selectedFiles;
 
-                    // VALIDATION
-                    if (!editingProductId && files.length === 0) throw new Error("Please select at least one image.");
+                    // Combined Check
+                    const totalImages = keptExistingImages.length + selectedFiles.length;
+                    if (totalImages === 0) throw new Error("Please select at least one image.");
 
                     const priceDisplay = `${priceVal} ₾`;
                     const priceInt = parseInt(priceVal);
 
-                    // Upload New Files
-                    const uploadedUrls = [];
-                    if (files.length > 0) {
-                        for (let i = 0; i < files.length; i++) {
-                            const file = files[i];
+                    // 1. Upload New Files
+                    const newUploadedUrls = [];
+                    if (selectedFiles.length > 0) {
+                        for (let i = 0; i < selectedFiles.length; i++) {
+                            const file = selectedFiles[i];
                             const fileExt = file.name.split('.').pop();
                             const fileName = `${Date.now()}_${i}.${fileExt}`;
                             const folderName = category === 'CUPS' ? 'chalice' : 'dabali';
@@ -492,24 +514,25 @@
                             if (uploadError) throw uploadError;
 
                             const { data: { publicUrl } } = supabaseClient.storage.from('product-images').getPublicUrl(filePath);
-                            uploadedUrls.push(publicUrl);
+                            newUploadedUrls.push(publicUrl);
                         }
                     }
+
+                    // 2. Merge Arrays
+                    // Order: Existing First, then New
+                    const finalGallery = [...keptExistingImages, ...newUploadedUrls];
+                    const finalMainImage = finalGallery[0]; // First image is always main
 
                     if (editingProductId) {
                         // --- UPDATE ---
                         const updatePayload = {
-                            title,
-                            category,
+                            title, category,
                             price: priceDisplay,
                             price_val: priceInt,
-                            description
+                            description,
+                            image_url: finalMainImage,
+                            gallery_urls: finalGallery
                         };
-
-                        if (uploadedUrls.length > 0) {
-                            updatePayload.image_url = uploadedUrls[0];
-                            updatePayload.gallery_urls = uploadedUrls;
-                        }
 
                         const { error: updateError } = await supabaseClient
                             .from('products')
@@ -523,13 +546,12 @@
                     } else {
                         // --- INSERT ---
                         const { error: insertError } = await supabaseClient.from('products').insert([{
-                            title,
-                            category,
+                            title, category,
                             price: priceDisplay,
                             price_val: priceInt,
                             description,
-                            image_url: uploadedUrls[0],
-                            gallery_urls: uploadedUrls
+                            image_url: finalMainImage,
+                            gallery_urls: finalGallery
                         }]);
 
                         if (insertError) throw insertError;
